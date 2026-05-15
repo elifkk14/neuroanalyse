@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  neuroanalyse:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Frontend (read-only)
+      - ./frontend:/app/frontend:ro
+      # Data directory (database + reports) — persisted
+      - ./data:/app/data
+      # Project root mounts (model checkpoints, mask, Late Fusion)
+      - ../DementiaMask_AAL3.nii:/app/DementiaMask_AAL3.nii:ro
+      - ../Late_Fusion_SON:/app/Late_Fusion_SON:ro
+      - ../mrı_demos_nii:/app/mrı_demos_nii:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

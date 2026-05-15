@@ -1,0 +1,30 @@
+fastapi==0.111.1
+uvicorn[standard]==0.30.1
+python-multipart==0.0.9
+pydantic==2.7.1
+
+# Database
+sqlalchemy==2.0.30
+
+# Auth
+passlib[bcrypt]==1.7.4
+
+# HTTP (license server calls)
+httpx==0.27.0
+
+# MRI / scientific
+nibabel==5.2.1
+numpy==1.26.4
+scipy==1.13.0
+matplotlib==3.9.0
+
+# DICOM conversion
+pydicom==2.4.4
+dicom2nifti==2.4.11
+
+# Deep learning
+torch==2.3.1
+pytorch-lightning==2.2.4
+
+# PDF generation
+reportlab==4.2.0

@@ -1,0 +1,2774 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuroAnalyse — Amiloid Tahmin Sistemi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:       #0b1f3a;
+      --navy-mid:   #132d52;
+      --navy-light: #1a3c6b;
+      --accent:     #2563eb;
+      --accent-h:   #1d4ed8;
+      --accent-glow:rgba(37,99,235,0.15);
+      --bg:         #f4f6fb;
+      --surface:    #ffffff;
+      --border:     #e2e8f0;
+      --border-mid: #cbd5e1;
+      --text:       #0f172a;
+      --text-2:     #334155;
+      --text-3:     #64748b;
+      --text-4:     #94a3b8;
+      --sidebar-w:  240px;
+      --header-h:   60px;
+      --radius:     12px;
+      --shadow-sm:  0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md:  0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+      --shadow-lg:  0 12px 40px rgba(0,0,0,0.14), 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    html, body { height: 100%; font-family: "DM Sans", sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+
+    /* ── Layout ────────────────────────────────────────────────── */
+    #root { display: flex; height: 100vh; overflow: hidden; }
+
+    /* ── Sidebar ───────────────────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--navy);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .sidebar-brand {
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-logo {
+      width: 36px; height: 36px;
+      background: var(--accent);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .brand-logo svg { display: block; }
+    .brand-text { flex: 1; min-width: 0; }
+    .brand-name { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+    .brand-sub  { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 0.4px; text-transform: uppercase; margin-top: 1px; }
+
+    .sidebar-nav { flex: 1; overflow-y: auto; padding: 12px 0; }
+    .nav-section-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase;
+      color: rgba(255,255,255,0.3); padding: 10px 20px 6px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 20px; cursor: pointer; border-radius: 0;
+      color: rgba(255,255,255,0.6); font-size: 13.5px; font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+      position: relative; border: none; background: none; width: 100%; text-align: left;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.9); }
+    .nav-item.active {
+      background: rgba(37,99,235,0.25);
+      color: #fff;
+    }
+    .nav-item.active::before {
+      content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+      width: 3px; height: 22px; background: var(--accent); border-radius: 0 3px 3px 0;
+    }
+    .nav-item svg { flex-shrink: 0; opacity: 0.7; }
+    .nav-item.active svg { opacity: 1; }
+    .nav-badge {
+      margin-left: auto; background: var(--accent);
+      color: #fff; font-size: 10px; font-weight: 700;
+      padding: 1px 7px; border-radius: 99px;
+    }
+
+    .sidebar-bottom {
+      border-top: 1px solid rgba(255,255,255,0.07);
+      padding: 14px 16px;
+    }
+    .sidebar-user {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; border-radius: 8px;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .sidebar-user:hover { background: rgba(255,255,255,0.05); }
+    .user-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--accent); display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .user-name { font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,0.85); }
+    .user-role { font-size: 11px; color: rgba(255,255,255,0.4); }
+
+    /* ── Main content ──────────────────────────────────────────── */
+    .main-area {
+      flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden;
+    }
+
+    .topbar {
+      height: var(--header-h); background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px; flex-shrink: 0;
+    }
+    .topbar-title { font-size: 15px; font-weight: 600; color: var(--text); }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .lang-toggle {
+      display: flex; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 7px; overflow: hidden; flex-shrink: 0;
+    }
+    .lang-btn {
+      padding: 5px 12px; font-size: 12px; font-weight: 600;
+      cursor: pointer; border: none; background: none;
+      color: var(--text-3); font-family: inherit; transition: all 0.15s;
+    }
+    .lang-btn.active { background: var(--navy); color: #fff; }
+    .topbar-badge {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;
+      background: rgba(37,99,235,0.1); color: var(--accent);
+      border: 1px solid rgba(37,99,235,0.2); padding: 3px 10px; border-radius: 5px;
+    }
+    .topbar-icon-btn {
+      width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--surface); cursor: pointer; display: flex; align-items: center; justify-content: center;
+      color: var(--text-3); transition: all 0.15s;
+    }
+    .topbar-icon-btn:hover { background: var(--bg); color: var(--text-2); }
+
+    .content-scroll {
+      flex: 1; overflow-y: auto; padding: 28px;
+    }
+
+    /* ── Login surface ────────────────────────────────────────── */
+    .auth-shell {
+      min-height: 100vh; width: 100%;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, var(--navy) 0%, #1a3c6b 100%);
+    }
+    .auth-brand { display: none; }
+    .auth-panel {
+      display: flex; align-items: center; justify-content: center; width: 100%; padding: 24px;
+    }
+    .auth-card {
+      width: min(440px, 100%); background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; box-shadow: 0 24px 64px rgba(0,0,0,0.22); padding: 40px;
+    }
+    .auth-logo-row {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 32px;
+    }
+    .auth-title { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .auth-subtitle { font-size: 13px; color: var(--text-3); margin-bottom: 24px; line-height: 1.6; }
+    .auth-footnote { margin-top: 16px; font-size: 11.5px; color: var(--text-4); line-height: 1.6; }
+    .license-banner {
+      background: #fffbeb; border-bottom: 1px solid #fcd34d; color: #92400e;
+      padding: 9px 28px; font-size: 12.5px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .license-banner strong { color: #78350f; }
+    .license-card-grid {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px;
+    }
+    .license-metric {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .license-metric span { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-3); font-weight: 700; margin-bottom: 3px; }
+    .license-metric b { color: var(--text); font-size: 13.5px; }
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 5px;
+      font-size: 11px; font-weight: 700; border: 1px solid var(--border);
+    }
+    .status-badge.active, .status-badge.demo, .status-badge.offline { background: #f0fdf4; color: #15803d; border-color: #86efac; }
+    .status-badge.expired, .status-badge.invalid { background: #fef2f2; color: #b91c1c; border-color: #fca5a5; }
+    .notice-backdrop {
+      position: fixed; inset: 0; z-index: 950; background: rgba(11,31,58,0.68);
+      display: flex; align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(4px);
+    }
+    .notice-card {
+      width: min(520px, 100%); background: var(--surface); border-radius: var(--radius);
+      border: 1px solid var(--border); box-shadow: var(--shadow-lg); padding: 26px;
+    }
+
+    /* ── Cards ─────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+    }
+    .card-header {
+      padding: 18px 24px 0;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card-title {
+      font-size: 13px; font-weight: 600; letter-spacing: 0.3px; color: var(--text-2);
+    }
+    .card-body { padding: 16px 24px 24px; }
+
+    /* ── Stats grid ────────────────────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    /* ── Tabs ──────────────────────────────────────────────────── */
+    .tab-row {
+      display: flex; gap: 0; border: 1px solid var(--border);
+      border-radius: 9px; background: var(--bg);
+      overflow: hidden; padding: 3px;
+    }
+    .tab-btn {
+      flex: 1; padding: 8px 0; font-size: 13px; font-weight: 600;
+      border: none; background: none; cursor: pointer; border-radius: 7px;
+      color: var(--text-3); font-family: inherit; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .tab-btn.active { background: var(--surface); color: var(--accent); box-shadow: var(--shadow-sm); }
+    .tab-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .tab-pill {
+      font-size: 10px; background: var(--accent); color: #fff;
+      border-radius: 99px; padding: 1px 6px; font-weight: 700;
+    }
+
+    /* ── Upload zone ───────────────────────────────────────────── */
+    .upload-zone {
+      border: 2px dashed var(--border-mid);
+      border-radius: 10px; padding: 44px 24px; text-align: center;
+      cursor: pointer; transition: all 0.2s; background: #fafbfd;
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: var(--accent); background: rgba(37,99,235,0.03);
+    }
+    .upload-zone.has-file { border-style: solid; border-color: var(--accent); background: rgba(37,99,235,0.03); }
+    .upload-icon-wrap {
+      width: 56px; height: 56px; border-radius: 14px; background: rgba(37,99,235,0.08);
+      display: inline-flex; align-items: center; justify-content: center; margin-bottom: 14px;
+    }
+    .upload-primary { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .upload-secondary { font-size: 12px; color: var(--text-3); margin-bottom: 12px; }
+    .fmt-chips { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+    .fmt-chip {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 5px;
+      padding: 2px 8px; font-size: 11px; font-weight: 600;
+      font-family: "DM Mono", monospace; color: var(--text-3);
+    }
+    .file-chosen-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; background: rgba(37,99,235,0.06);
+      border: 1px solid rgba(37,99,235,0.18); border-radius: 8px; margin-bottom: 16px;
+    }
+    .file-chosen-name { font-size: 13px; font-weight: 500; color: var(--accent); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-chosen-size { font-size: 12px; color: var(--text-3); flex-shrink: 0; }
+    .btn-x { background: none; border: none; cursor: pointer; color: var(--text-3); padding: 2px; display: flex; }
+    .btn-x:hover { color: #dc2626; }
+
+    /* ── Buttons ───────────────────────────────────────────────── */
+    .btn-primary {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 12px; background: var(--accent); color: #fff;
+      font-size: 14px; font-weight: 600; border: none; border-radius: 9px;
+      cursor: pointer; font-family: inherit; transition: all 0.15s; letter-spacing: 0.1px;
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-h); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; background: var(--surface); color: var(--text-2);
+      font-size: 13px; font-weight: 500; border: 1px solid var(--border);
+      border-radius: 8px; cursor: pointer; font-family: inherit; transition: all 0.15s;
+    }
+    .btn-secondary:hover { background: var(--bg); border-color: var(--border-mid); }
+    .btn-navy {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; background: var(--navy); color: #fff;
+      font-size: 13px; font-weight: 500; border: none; border-radius: 8px;
+      cursor: pointer; font-family: inherit; transition: all 0.15s;
+    }
+    .btn-navy:hover { background: var(--navy-mid); }
+
+    /* ── Form fields ───────────────────────────────────────────── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+    .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+    .field-label {
+      display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
+      text-transform: uppercase; color: var(--text-3); margin-bottom: 5px;
+    }
+    .field-input {
+      width: 100%; padding: 9px 12px; border: 1px solid var(--border);
+      border-radius: 7px; font-size: 13.5px; font-family: inherit; color: var(--text);
+      background: #fafbfd; outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .field-input:focus { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px var(--accent-glow); }
+
+    /* ── Results layout ────────────────────────────────────────── */
+    .results-grid {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .gauge-card {
+      display: flex; flex-direction: column; align-items: center; padding: 24px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow-sm);
+    }
+    .gauge-score-label { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-3); margin-bottom: 8px; }
+    .gauge-legend {
+      display: flex; flex-direction: column; gap: 6px; width: 100%; margin-top: 12px;
+    }
+    .legend-row { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--text-3); }
+    .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+    .info-panel {
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .result-section {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px 22px; box-shadow: var(--shadow-sm);
+    }
+    .result-section-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;
+      color: var(--text-3); margin-bottom: 12px;
+    }
+    .risk-row { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; }
+    .risk-value { font-size: 44px; font-weight: 700; line-height: 1; letter-spacing: -1.5px; color: var(--navy); }
+    .risk-unit { font-size: 14px; color: var(--text-3); margin-top: 4px; }
+    .interp-text { font-size: 13.5px; color: var(--text-2); line-height: 1.65; margin-top: 8px; }
+    .prediction-note {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(37,99,235,0.07); border: 1px solid rgba(37,99,235,0.15);
+      border-radius: 6px; padding: 5px 10px; font-size: 11.5px; font-weight: 500;
+      color: var(--accent); margin-top: 10px;
+    }
+    .confidence-bar {
+      margin-top: 10px;
+    }
+    .confidence-range {
+      font-size: 11.5px; color: var(--text-3); margin-bottom: 6px;
+    }
+    .conf-track { height: 8px; background: var(--bg); border-radius: 99px; position: relative; overflow: visible; }
+    .conf-fill { height: 100%; border-radius: 99px; position: absolute; top: 0; }
+    .conf-marker {
+      position: absolute; top: 50%; transform: translate(-50%,-50%);
+      width: 14px; height: 14px; border-radius: 50%; background: var(--navy);
+      border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+
+    /* ── Slices ────────────────────────────────────────────────── */
+    .slices-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    }
+    .slice-wrap {
+      background: #070b12; border-radius: 8px; overflow: hidden;
+      border: 1px solid #1a2640; position: relative;
+    }
+    .slice-label {
+      position: absolute; bottom: 6px; left: 8px;
+      font-size: 10px; font-weight: 600; letter-spacing: 0.8px;
+      color: rgba(255,255,255,0.5); font-family: "DM Mono", monospace;
+      text-transform: uppercase;
+    }
+
+    /* ── Metadata ──────────────────────────────────────────────── */
+    .meta-strip {
+      display: flex; gap: 20px; flex-wrap: wrap;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 16px; font-size: 12px; color: var(--text-3);
+    }
+    .meta-strip b { color: var(--text-2); font-weight: 600; }
+
+    /* ── Patient list ──────────────────────────────────────────── */
+    .patients-toolbar {
+      display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap;
+    }
+    .search-field {
+      flex: 1; min-width: 180px; position: relative;
+    }
+    .search-field input {
+      width: 100%; padding: 9px 12px 9px 36px;
+      border: 1px solid var(--border); border-radius: 8px;
+      font-size: 13px; font-family: inherit; color: var(--text);
+      background: var(--surface); outline: none; transition: border-color 0.15s;
+    }
+    .search-field input:focus { border-color: var(--accent); }
+    .search-field svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text-4); pointer-events: none; }
+    .filter-select {
+      padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px;
+      font-size: 13px; font-family: inherit; color: var(--text-2); background: var(--surface);
+      outline: none; cursor: pointer;
+    }
+
+    .patients-table {
+      width: 100%; border-collapse: collapse;
+    }
+    .patients-table th {
+      text-align: left; font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
+      text-transform: uppercase; color: var(--text-3); padding: 10px 16px;
+      border-bottom: 1px solid var(--border); background: var(--bg);
+    }
+    .patients-table th:first-child { border-radius: 8px 0 0 0; }
+    .patients-table th:last-child { border-radius: 0 8px 0 0; }
+    .patients-table td {
+      padding: 13px 16px; border-bottom: 1px solid var(--border);
+      font-size: 13px; color: var(--text-2);
+    }
+    .patients-table tr:last-child td { border-bottom: none; }
+    .patients-table tr:hover td { background: rgba(37,99,235,0.02); cursor: pointer; }
+    .pt-name { font-weight: 600; color: var(--text); }
+    .pt-id { font-size: 11.5px; color: var(--text-3); font-family: "DM Mono", monospace; margin-top: 2px; }
+    .modality-chip {
+      display: inline-block; padding: 2px 8px; border-radius: 5px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.3px;
+      font-family: "DM Mono", monospace;
+    }
+    .modality-chip.mri { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .modality-chip.pet { background: #fdf4ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+
+    /* ── Loading overlay ───────────────────────────────────────── */
+    .loading-overlay {
+      position: fixed; inset: 0; background: rgba(11,31,58,0.72);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 900; backdrop-filter: blur(4px);
+    }
+    .loading-card {
+      background: var(--surface); border-radius: 16px; padding: 40px 52px;
+      display: flex; flex-direction: column; align-items: center; gap: 20px;
+      box-shadow: var(--shadow-lg); min-width: 280px;
+    }
+    .spinner-ring {
+      width: 52px; height: 52px; border: 4px solid var(--border);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-title { font-size: 15px; font-weight: 600; color: var(--text); }
+    .loading-steps { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+    .loading-step {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 12.5px; color: var(--text-3);
+    }
+    .step-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--border); flex-shrink: 0; transition: background 0.3s;
+    }
+    .step-dot.done { background: #16a34a; }
+    .step-dot.active { background: var(--accent); animation: pulse 1s ease infinite; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+    .loading-bar-track {
+      width: 100%; height: 4px; background: var(--bg); border-radius: 99px; overflow: hidden;
+    }
+    .loading-bar-fill {
+      height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.4s ease;
+    }
+
+    /* ── Error banner ──────────────────────────────────────────── */
+    .error-banner {
+      background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px;
+      padding: 12px 16px; color: #7f1d1d; font-size: 13px; margin-bottom: 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    /* ── Disclaimer ────────────────────────────────────────────── */
+    .disclaimer-bar {
+      background: var(--navy); color: rgba(255,255,255,0.5);
+      text-align: center; padding: 12px 24px; font-size: 11px; line-height: 1.6;
+      flex-shrink: 0;
+    }
+    .disclaimer-bar strong { color: rgba(255,255,255,0.75); }
+
+    /* ── Divider ───────────────────────────────────────────────── */
+    .divider { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
+
+    /* ── Section header ────────────────────────────────────────── */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;
+    }
+    .section-title { font-size: 15px; font-weight: 700; color: var(--text); }
+
+    /* ── Empty state ───────────────────────────────────────────── */
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 60px 24px; color: var(--text-3); text-align: center; gap: 12px;
+    }
+    .empty-state svg { color: var(--text-4); }
+    .empty-state p { font-size: 14px; font-weight: 500; color: var(--text-2); }
+    .empty-state small { font-size: 12.5px; }
+
+    /* ── Print ─────────────────────────────────────────────────── */
+    @media print {
+      .sidebar, .topbar, .btn-primary, .btn-secondary, .btn-navy,
+      .disclaimer-bar, #upload-view { display: none !important; }
+      body { background: #fff; }
+      .content-scroll { padding: 0; }
+      .card, .gauge-card, .result-section { box-shadow: none; page-break-inside: avoid; }
+      #results-view { display: block !important; }
+      .results-grid { grid-template-columns: 260px 1fr; }
+    }
+
+    /* ── Animations ────────────────────────────────────────────── */
+    .fade-in { opacity: 1; }
+
+    /* ── Scrollbar ─────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 3px; }
+
+    @media (max-width: 900px) {
+      .auth-shell { grid-template-columns: 1fr; }
+      .auth-brand { min-height: 360px; padding: 30px; gap: 28px; }
+      .auth-brand-copy h1 { font-size: 28px; }
+      .license-card-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script>
+// T and INTERP defined here (plain JS, synchronous) so they are always
+// available before any Babel/JSX script runs — fixes async loading race.
+window.INTERP = {
+  negative:   { tr: "MRI analizine göre amiloid yükü negatif eşiğin altında. Klinik takip önerilir.",       en: "Amyloid burden below negative threshold per MRI analysis. Clinical follow-up advised." },
+  borderline: { tr: "Sınırda amiloid yükü tespit edildi. Amyloid PET görüntülemesi ile doğrulama düşünülebilir.", en: "Borderline amyloid burden detected. Confirmatory Amyloid PET imaging may be considered." },
+  elevated:   { tr: "Orta düzey amiloid yükü. Nöroloji uzman konsültasyonu ve ileri görüntüleme önerilir.", en: "Moderate amyloid burden. Neurology specialist consultation and further imaging recommended." },
+  high:       { tr: "Yüksek amiloid yükü. Acil nöroloji konsültasyonu önerilir. Amyloid PET ile teyit ediniz.", en: "High amyloid burden detected. Urgent neurology consultation advised. Confirm with Amyloid PET." }
+};
+window.T = {
+  tr: {
+    appName:"NeuroAnalyse", appSub:"Amiloid Tahmin Sistemi",
+    nav_dashboard:"Gösterge Paneli", nav_new:"Yeni Analiz", nav_patients:"Hastalar",
+    nav_reports:"Raporlar", nav_settings:"Ayarlar",
+    dashboard_title:"Gösterge Paneli", recent_analyses:"Son Analizler",
+    new_analysis:"Yeni Analiz", patient_id:"Hasta ID", patient_name:"Hasta Adı",
+    tc_id:"TC Kimlik No", birth_year:"Doğum Yılı", sex:"Cinsiyet",
+    sex_male:"Erkek", sex_female:"Kadın", sex_other:"Diğer",
+    patient_found:"Kayıt bulundu. Bilgiler otomatik dolduruldu.",
+    patient_new:"Kayıt bulunamadı. Yeni hasta bilgilerini tamamlayın.",
+    invalid_tc:"TC kimlik numarası hatalı veya eksik.",
+    create_patient:"Yeni Hasta Kaydı Oluştur",
+    clinician_note:"Klinisyen Notu",
+    clinician:"İstekçi Klinisyen", scan_date:"Çekim Tarihi", modality:"Modalite",
+    upload_mri:"MRI Görüntüsü Yükle", upload_pet:"PET Görüntüsü Yükle",
+    drop_here:"Dosyayı buraya sürükleyin veya tıklayın", max_size:"Maksimum dosya boyutu: 2 GB",
+    run_analysis:"Analizi Başlat", analyzing:"Analiz ediliyor…",
+    centiloid:"Tahmini Centiloid", risk_level:"Risk Düzeyi", interpretation:"Klinik Yorum",
+    mri_slices:"MRI Referans Kesimleri", axial:"Aksiyel", coronal:"Koronal", sagittal:"Sagital",
+    masked_mri:"Maskelenmiş MRI", raw_mri:"Referans MRI",
+    mri_deleted_notice:"MRI dosyası analiz sonrası sistemden silindi. Yalnızca skorlar ve görsel önizlemeler saklandı.",
+    previous_analysis:"Önceki analiz",
+    create_report:"Raporu Oluştur", view_report:"Raporu Görüntüle", download_pdf:"PDF İndir",
+    report_ready:"Rapor hazır",
+    metadata:"İşlem Bilgileri", format:"Format", proc_time:"İşlem Süresi", model:"Model",
+    print_report:"Rapor Yazdır", new_analysis_btn:"Yeni Analiz",
+    disclaimer:"ARAŞTIRMA PROTOTİPİ — YALNIZCA ARAŞTIRMA AMAÇLIDIR.",
+    disclaimer2:"Bu araç yapay zeka tabanlı bir tahmin sunmakta olup klinik tanı yerine geçmez. Sonuçlar yalnızca yetkili bir klinisyen tarafından yorumlanmalıdır. Tanısal kullanım için onaylı değildir.",
+    patients_title:"Hasta Listesi", search_patient:"Hasta ara…", all_risks:"Tüm Risk Seviyeleri",
+    age:"Yaş", last_scan:"Son Çekim", result:"Sonuç", view:"Görüntüle",
+    stats_total:"Toplam Analiz", stats_high:"Kritik Vaka", stats_elevated:"Yüksek Vaka", stats_negative:"Negatif",
+    confidence:"Güven Aralığı", prototype_badge:"Prototip",
+    reports_title:"Raporlar", reports_sub:"Tüm analiz raporlarını görüntüleyin ve dışa aktarın",
+    reports_total:"Toplam Rapor", reports_this_month:"Bu Ay", reports_exported:"Dışa Aktarılan", reports_pending:"Bekleyen",
+    export_pdf:"PDF İndir", export_csv:"CSV Dışa Aktar",
+    report_date:"Tarih", report_patient:"Hasta", report_score:"Centiloid", report_risk:"Risk",
+    report_clinician:"Klinisyen", report_modality:"Modalite", report_actions:"İşlem",
+    filter_all:"Tüm Dönemler", filter_week:"Bu Hafta", filter_month:"Bu Ay", filter_year:"Bu Yıl",
+    settings_title:"Ayarlar", set_profile:"Profil Bilgileri", set_system:"Sistem",
+    set_model:"Model & AI", set_integration:"Entegrasyonlar", set_security:"Güvenlik",
+    set_name:"Ad Soyad", set_title_field:"Unvan", set_dept:"Bölüm / Klinik",
+    set_email:"E-posta", set_hospital:"Hastane", set_save:"Değişiklikleri Kaydet", set_saved:"Kaydedildi",
+    set_model_name:"Aktif Model", set_model_ver:"Model Versiyonu", set_threshold:"Pozitiflik Eşiği (CL)",
+    set_confidence_display:"Güven Aralığı Göster", set_auto_report:"Otomatik Rapor Oluştur",
+    set_dicom:"DICOM Sunucu Adresi", set_ris:"RIS Entegrasyon URL", set_pacs:"PACS Bağlantısı",
+    set_api_key:"API Anahtarı", set_2fa:"İki Faktörlü Doğrulama",
+    set_session:"Oturum Zaman Aşımı (dk)", set_audit:"Denetim Günlüğü", set_notifications:"Bildirimler",
+    set_notif_email:"E-posta Bildirimleri", set_notif_high:"Kritik Vaka Uyarısı",
+    set_lang_pref:"Arayüz Dili", no_file:"Dosya seçilmedi", file_selected:"Dosya seçildi",
+    remove_file:"Dosyayı kaldır", mri_tab:"MRI", pet_tab:"PET",
+    prediction_note:"Amyloid PET'e gerek kalmadan tahmin edildi",
+    modal_title:"Analiz Sonuçları", close:"Kapat",
+    login_title:"Cihaz Oturumu", login_sub:"Standalone NeuroAnalyse iş istasyonuna giriş yapın.",
+    email:"E-posta", password:"Şifre", login:"Giriş Yap", logout:"Çıkış",
+    demo_credentials:"Demo admin hesabı", login_error:"E-posta veya şifre hatalı.",
+    account_locked:"Hesap kilitlendi. Admin tarafından açılmalıdır.",
+    research_notice_title:"Araştırma Amaçlı Kullanım Uyarısı",
+    research_notice_body:"Bu sistem araştırma amaçlıdır ve klinik tanı yerine geçmez. Sonuçlar yalnızca yetkili klinisyen tarafından yorumlanmalıdır.",
+    accept_continue:"Onayla ve Devam Et", license:"Lisans", license_type:"Lisans Tipi",
+    license_expires:"Bitiş Tarihi", license_key:"Lisans Anahtarı", license_status:"Durum",
+    demo_remaining:"Kalan Demo Analiz", renew_license:"Lisansı Yenile", support:"Destek Al",
+    license_warning:"Lisansınız {days} gün içinde sona eriyor. Yenilemek için admin ile iletişime geçin.",
+  },
+  en: {
+    appName:"NeuroAnalyse", appSub:"Amyloid Prediction System",
+    nav_dashboard:"Dashboard", nav_new:"New Analysis", nav_patients:"Patients",
+    nav_reports:"Reports", nav_settings:"Settings",
+    dashboard_title:"Dashboard", recent_analyses:"Recent Analyses",
+    new_analysis:"New Analysis", patient_id:"Patient ID", patient_name:"Patient Name",
+    tc_id:"National ID", birth_year:"Birth Year", sex:"Sex",
+    sex_male:"Male", sex_female:"Female", sex_other:"Other",
+    patient_found:"Patient record found. Details were filled automatically.",
+    patient_new:"No record found. Complete the new patient fields.",
+    invalid_tc:"National ID is missing or invalid.",
+    create_patient:"Create Patient Record",
+    clinician_note:"Clinician Note",
+    clinician:"Requesting Clinician", scan_date:"Scan Date", modality:"Modality",
+    upload_mri:"Upload MRI Image", upload_pet:"Upload PET Image",
+    drop_here:"Drag & drop file here, or click to browse", max_size:"Maximum file size: 2 GB",
+    run_analysis:"Run Analysis", analyzing:"Analysing…",
+    centiloid:"Estimated Centiloid", risk_level:"Risk Level", interpretation:"Clinical Interpretation",
+    mri_slices:"Brain MRI — Reference Slices", axial:"Axial", coronal:"Coronal", sagittal:"Sagittal",
+    masked_mri:"Masked MRI", raw_mri:"Reference MRI",
+    mri_deleted_notice:"MRI file was deleted after analysis. Only scores and visual previews were stored.",
+    previous_analysis:"Previous analysis",
+    create_report:"Create Report", view_report:"View Report", download_pdf:"Download PDF",
+    report_ready:"Report ready",
+    metadata:"Processing Info", format:"Format", proc_time:"Processing Time", model:"Model",
+    print_report:"Print Report", new_analysis_btn:"New Analysis",
+    disclaimer:"RESEARCH PROTOTYPE — FOR INVESTIGATIONAL USE ONLY.",
+    disclaimer2:"This tool provides an AI-generated estimate and does not constitute a clinical diagnosis. Results must be interpreted by a qualified clinician. Not approved for diagnostic use.",
+    patients_title:"Patient List", search_patient:"Search patient…", all_risks:"All Risk Levels",
+    age:"Age", last_scan:"Last Scan", result:"Result", view:"View",
+    stats_total:"Total Analyses", stats_high:"High Risk", stats_elevated:"Elevated", stats_negative:"Negative",
+    confidence:"Confidence Interval", prototype_badge:"Prototype",
+    reports_title:"Reports", reports_sub:"View and export all analysis reports",
+    reports_total:"Total Reports", reports_this_month:"This Month", reports_exported:"Exported", reports_pending:"Pending",
+    export_pdf:"Download PDF", export_csv:"Export CSV",
+    report_date:"Date", report_patient:"Patient", report_score:"Centiloid", report_risk:"Risk",
+    report_clinician:"Clinician", report_modality:"Modality", report_actions:"Actions",
+    filter_all:"All Time", filter_week:"This Week", filter_month:"This Month", filter_year:"This Year",
+    settings_title:"Settings", set_profile:"Profile", set_system:"System",
+    set_model:"Model & AI", set_integration:"Integrations", set_security:"Security",
+    set_name:"Full Name", set_title_field:"Title", set_dept:"Department / Clinic",
+    set_email:"Email", set_hospital:"Hospital", set_save:"Save Changes", set_saved:"Saved",
+    set_model_name:"Active Model", set_model_ver:"Model Version", set_threshold:"Positivity Threshold (CL)",
+    set_confidence_display:"Show Confidence Interval", set_auto_report:"Auto-generate Reports",
+    set_dicom:"DICOM Server Address", set_ris:"RIS Integration URL", set_pacs:"PACS Connection",
+    set_api_key:"API Key", set_2fa:"Two-Factor Authentication",
+    set_session:"Session Timeout (min)", set_audit:"Audit Log", set_notifications:"Notifications",
+    set_notif_email:"Email Notifications", set_notif_high:"Critical Case Alerts",
+    set_lang_pref:"Interface Language", no_file:"No file selected", file_selected:"File selected",
+    remove_file:"Remove file", mri_tab:"MRI", pet_tab:"PET",
+    prediction_note:"Predicted without Amyloid PET",
+    modal_title:"Analysis Results", close:"Close",
+    login_title:"Workstation Login", login_sub:"Sign in to the standalone NeuroAnalyse workstation.",
+    email:"Email", password:"Password", login:"Sign In", logout:"Logout",
+    demo_credentials:"Demo admin account", login_error:"Email or password is incorrect.",
+    account_locked:"Account locked. An admin must unlock it.",
+    research_notice_title:"Investigational Use Notice",
+    research_notice_body:"This system is for research use and does not replace clinical diagnosis. Results must be interpreted by an authorised clinician.",
+    accept_continue:"Accept and Continue", license:"License", license_type:"License Type",
+    license_expires:"Expiry Date", license_key:"License Key", license_status:"Status",
+    demo_remaining:"Remaining Demo Analyses", renew_license:"Renew License", support:"Get Support",
+    license_warning:"Your license expires in {days} days. Contact an admin to renew.",
+  }
+};
+</script>
+<script type="text/babel" src="/static/neuroanalyse-components.jsx?v=stage5"></script>
+<script type="text/babel" src="/static/tweaks-panel.jsx"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ── Icons ────────────────────────────────────────────────────────────
+const Icon = ({ d, size=16, stroke="currentColor", sw=1.7, fill="none" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+    {Array.isArray(d) ? d.map((p,i) => <path key={i} d={p}/>) : <path d={d}/>}
+  </svg>
+);
+
+const LogoMark = ({ size=22 }) => (
+  <svg width={size} height={size} viewBox="0 0 28 28" fill="none" aria-hidden="true">
+    <rect x="2.5" y="2.5" width="23" height="23" rx="6" fill="rgba(255,255,255,0.10)" stroke="rgba(255,255,255,0.35)" strokeWidth="1.3" />
+    <path d="M8 19.4V8.6L20 19.4V8.6" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M7.8 14h3.2l1.4-3.1 2.4 6.1 1.7-3h3.7" stroke="#bfdbfe" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const ICONS = {
+  grid: ["M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"],
+  plus: "M12 5v14M5 12h14",
+  users: ["M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2","M23 21v-2a4 4 0 0 0-3-3.87","M16 3.13a4 4 0 0 1 0 7.75"],
+  file: ["M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z","M14 2v6h6","M16 13H8","M16 17H8","M10 9H8"],
+  settings: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z",
+  upload: ["M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4","M17 8l-5-5-5 5","M12 3v12"],
+  brain: "M9.5 2a4.5 4.5 0 0 1 4.5 4.5v.5h1a3 3 0 0 1 3 3v1a4 4 0 0 1-4 4H10a4 4 0 0 1-4-4v-1a3 3 0 0 1 3-3h.5V6.5A4.5 4.5 0 0 1 9.5 2z",
+  bell: ["M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9","M13.73 21a2 2 0 0 1-3.46 0"],
+  search: ["M11 17.25a6.25 6.25 0 1 1 0-12.5 6.25 6.25 0 0 1 0 12.5z","M16 16l3.5 3.5"],
+  x: "M18 6L6 18M6 6l12 12",
+  print: ["M6 9V2h12v7","M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2","M6 14h12v8H6z"],
+  check: "M20 6L9 17l-5-5",
+  info: ["M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z","M12 16v-4","M12 8h.01"],
+  atom: ["M12 12m-1 0a1 1 0 1 0 2 0 1 1 0 1 0-2 0","M12 2a10 10 0 0 0 0 20","M2 12a10 10 0 0 0 20 0","M4.93 4.93l14.14 14.14","M19.07 4.93L4.93 19.07"],
+};
+
+const maskTc = (tc) => {
+  if (!tc) return "—";
+  const s = String(tc).replace(/\D/g, "");
+  if (s.length < 4) return s;
+  return s.slice(0, 2) + "•••••••" + s.slice(-2);
+};
+
+function analysisToResult(a, lang = "tr") {
+  return {
+    centiloid: Number(a.centiloid || 0),
+    risk: a.risk_category || "negative",
+    confLow: a.confidence_low ?? 0,
+    confHigh: a.confidence_high ?? 0,
+    slices: {
+      axial: a.slice_axial,
+      coronal: a.slice_coronal,
+      sagittal: a.slice_sagittal,
+    },
+    maskedSlices: {
+      axial: a.masked_slice_axial,
+      coronal: a.masked_slice_coronal,
+      sagittal: a.masked_slice_sagittal,
+    },
+    input_format: a.input_format || "MRI",
+    processing_time_s: a.processing_time_s,
+    model_info: { name: a.model_version || "LateFusion-v1.0" },
+    patientId: a.patient_id || "—",
+    patientName: a.patient_name || "—",
+    clinician: a.requesting_clinician || "—",
+    scanDate: a.scan_date || "—",
+    modality: "MRI",
+    fileName: "",
+    analysisId: a.id,
+    mriDeleted: a.mri_deleted,
+    interpretation: lang === "tr" ? a.interpretation_tr : a.interpretation_en,
+    reportReady: a.report_ready,
+  };
+}
+
+async function apiFetch(path, options = {}) {
+  const res = await fetch(path, {
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+    ...options,
+  });
+  let data = null;
+  try { data = await res.json(); } catch (_) {}
+  if (!res.ok) {
+    const err = new Error(data?.detail || "request_failed");
+    err.status = res.status;
+    err.detail = data?.detail;
+    throw err;
+  }
+  return data;
+}
+
+function LoginView({ lang, onLogin }) {
+  const t = T[lang];
+  const [username, setUsername] = useState("ayse.yilmaz");
+  const [password, setPassword] = useState("Test1234");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+    try {
+      await apiFetch("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ username, password }),
+      });
+      const me = await apiFetch("/api/auth/me");
+      onLogin(me);
+    } catch (err) {
+      setError(err.detail === "account_locked" ? t.account_locked : t.login_error);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="auth-shell">
+      <div className="auth-brand">
+        <div className="auth-brand-mark">
+          <div className="brand-logo">
+            <LogoMark size={24} />
+          </div>
+          <div>
+            <div className="brand-name">{t.appName}</div>
+            <div className="brand-sub">{t.appSub}</div>
+          </div>
+        </div>
+      </div>
+      <div className="auth-panel">
+        <form className="auth-card" onSubmit={submit}>
+          <div className="auth-logo-row">
+            <div className="brand-logo"><LogoMark size={22} /></div>
+            <div>
+              <div className="brand-name" style={{color:"var(--text)"}}>{t.appName}</div>
+              <div className="brand-sub">{t.appSub}</div>
+            </div>
+          </div>
+          <div className="auth-title">{t.login_title}</div>
+          <div className="auth-subtitle">{t.login_sub}</div>
+          {error && <div className="error-banner"><Icon d={ICONS.info} size={16} stroke="#dc2626" />{error}</div>}
+          <div style={{marginBottom:14}}>
+            <label className="field-label">{lang==="tr"?"Kullanıcı Adı":"Username"}</label>
+            <input className="field-input" type="text" value={username} onChange={e=>setUsername(e.target.value)} autoComplete="username" />
+          </div>
+          <div style={{marginBottom:18}}>
+            <label className="field-label">{t.password}</label>
+            <input className="field-input" type="password" value={password} onChange={e=>setPassword(e.target.value)} autoComplete="current-password" />
+          </div>
+          <button className="btn-primary" disabled={busy}>
+            {busy ? (lang==="tr"?"Giriş yapılıyor...":"Signing in...") : t.login}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function ResearchNoticeModal({ lang, onAccept }) {
+  const t = T[lang];
+  return (
+    <div className="notice-backdrop">
+      <div className="notice-card">
+        <div style={{display:"flex", alignItems:"center", gap:12, marginBottom:14}}>
+          <div className="brand-logo" style={{width:38, height:38}}>
+            <LogoMark size={25} />
+          </div>
+          <div style={{fontSize:17, fontWeight:700, color:"var(--text)"}}>{t.research_notice_title}</div>
+        </div>
+        <p style={{fontSize:13.5, color:"var(--text-2)", lineHeight:1.75, marginBottom:20}}>{t.research_notice_body}</p>
+        <button className="btn-primary" onClick={onAccept}>{t.accept_continue}</button>
+      </div>
+    </div>
+  );
+}
+
+function LicenseBanner({ lang, license }) {
+  const t = T[lang];
+  if (!license?.warn_expiry || license.days_remaining == null) return null;
+  return (
+    <div className="license-banner">
+      <span><strong>{t.license}:</strong> {t.license_warning.replace("{days}", license.days_remaining)}</span>
+      <span style={{fontFamily:"DM Mono, monospace"}}>{license.key_masked}</span>
+    </div>
+  );
+}
+
+// ── Loading overlay ───────────────────────────────────────────────────
+function LoadingOverlay({ lang }) {
+  const t = T[lang];
+  const [step, setStep] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  const steps_tr = [
+    "DICOM → NIfTI dönüşümü",
+    "Reorientation ve MNI normalizasyonu",
+    "Bölge maskesi uygulanıyor",
+    "Öznitelik çıkarımı",
+    "Centiloid tahmini hesaplanıyor",
+  ];
+  const steps_en = [
+    "DICOM → NIfTI conversion",
+    "Reorientation & MNI normalisation",
+    "Applying region mask",
+    "Feature extraction",
+    "Computing Centiloid estimate",
+  ];
+  const steps = lang === "tr" ? steps_tr : steps_en;
+
+  useEffect(() => {
+    const timers = [
+      setTimeout(() => { setStep(1); setProgress(20); }, 400),
+      setTimeout(() => { setStep(2); setProgress(45); }, 1400),
+      setTimeout(() => { setStep(3); setProgress(72); }, 2600),
+      setTimeout(() => { setStep(4); setProgress(95); }, 3800),
+    ];
+    return () => timers.forEach(clearTimeout);
+  }, []);
+
+  return (
+    <div className="loading-overlay">
+      <div className="loading-card">
+        <div className="spinner-ring"></div>
+        <div className="loading-title">{t.analyzing}</div>
+        <div className="loading-bar-track" style={{width:"100%"}}>
+          <div className="loading-bar-fill" style={{width: progress + "%"}}></div>
+        </div>
+        <div className="loading-steps">
+          {steps.map((s, i) => (
+            <div key={i} className="loading-step">
+              <div className={`step-dot${i < step ? " done" : i === step ? " active" : ""}`}></div>
+              <span style={{ color: i < step ? "#15803d" : i === step ? "var(--accent)" : "var(--text-4)" }}>{s}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── New Analysis View ─────────────────────────────────────────────────
+function NewAnalysisView({ lang, onResult }) {
+  const t = T[lang];
+  const [file, setFile] = useState(null);
+  const [patientId, setPatientId] = useState("");
+  const [patientName, setPatientName] = useState("");
+  const [birthYear, setBirthYear] = useState("");
+  const [sex, setSex] = useState("");
+  const [patientFound, setPatientFound] = useState(null);
+  const [patientMatches, setPatientMatches] = useState([]);
+  const [clinicians, setClinicians] = useState([]);
+  const [clinicianId, setClinicianId] = useState("");
+  const [clinicianNote, setClinicianNote] = useState("");
+  const [scanDate, setScanDate] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [progressText, setProgressText] = useState("");
+  const [error, setError] = useState("");
+  const fileRef = useRef(null);
+  const dropRef = useRef(null);
+
+  const normalizeTc = (v) => (v || "").replace(/\D/g, "").slice(0, 11);
+  const isValidTc = (v) => {
+    const tc = normalizeTc(v);
+    if (tc.length !== 11 || tc[0] === "0") return false;
+    const d = tc.split("").map(Number);
+    const odd = d[0] + d[2] + d[4] + d[6] + d[8];
+    const even = d[1] + d[3] + d[5] + d[7];
+    return d[9] === (((odd * 7 - even) % 10 + 10) % 10) && d[10] === d.slice(0, 10).reduce((a,b)=>a+b, 0) % 10;
+  };
+
+  const pipelineStepLabel = (step) => ({
+    convert: lang==="tr" ? "DICOM → NIfTI dönüşümü" : "DICOM → NIfTI conversion",
+    reorient: lang==="tr" ? "Reorientation ve MNI normalizasyonu" : "Reorientation & MNI normalisation",
+    mask: lang==="tr" ? "Bölge maskesi uygulanıyor" : "Applying region mask",
+    inference: lang==="tr" ? "Centiloid tahmini hesaplanıyor" : "Computing Centiloid estimate",
+    done: lang==="tr" ? "Analiz tamamlandı" : "Analysis complete",
+  }[step] || step);
+
+  const errorMessage = (detail) => ({
+    unsupported_format: lang==="tr" ? "Desteklenmeyen dosya formatı. .nii, .nii.gz, .dcm veya .zip yükleyin." : "Unsupported file format. Upload .nii, .nii.gz, .dcm, or .zip.",
+    conversion_failed: lang==="tr" ? "DICOM → NIfTI dönüşümü başarısız. Dosya serisini kontrol edin." : "DICOM → NIfTI conversion failed. Check the image series.",
+    preprocessing_failed: lang==="tr" ? "Görüntü ön işleme başarısız. Görüntü kalitesini kontrol edin." : "Image preprocessing failed. Check image quality.",
+    masking_failed: lang==="tr" ? "Beyin bölgesi tespit edilemedi. Farklı bir görüntü deneyin." : "Brain region could not be detected. Try a different image.",
+    inference_failed: lang==="tr" ? "Analiz tamamlanamadı. Tekrar deneyin." : "Analysis could not be completed. Try again.",
+    license_expired: lang==="tr" ? "Lisans süresi dolmuş. Yeni analiz başlatılamaz." : "License expired. New analyses cannot be started.",
+    demo_limit_reached: lang==="tr" ? "Demo analiz hakkı dolmuş." : "Demo analysis limit reached.",
+    invalid_tc: t.invalid_tc,
+  }[detail] || detail || (lang==="tr" ? "Beklenmeyen bir hata oluştu." : "An unexpected error occurred."));
+
+  const waitForAnalysis = (analysisId) => new Promise((resolve, reject) => {
+    let settled = false;
+    const source = new EventSource(`/api/analyses/${analysisId}/stream`);
+    const finish = (fn, value) => {
+      if (settled) return;
+      settled = true;
+      source.close();
+      fn(value);
+    };
+    source.onmessage = async (event) => {
+      const state = JSON.parse(event.data);
+      if (state.step) setProgressText(pipelineStepLabel(state.step));
+      if (state.error) finish(reject, new Error(errorMessage(String(state.error).split(":")[0])));
+      if (state.done) {
+        settled = true; // mark settled immediately so onerror is ignored during apiFetch
+        source.close();
+        try {
+          const finalData = await apiFetch(`/api/analyses/${analysisId}`);
+          if (finalData.status === "failed") reject(new Error(errorMessage(String(finalData.error_message || "inference_failed").split(":")[0])));
+          else resolve(finalData);
+        } catch (err) {
+          reject(err);
+        }
+      }
+    };
+    source.onerror = () => finish(reject, new Error(errorMessage("connection_failed")));
+    setTimeout(() => finish(reject, new Error("analysis_timeout")), 10 * 60 * 1000);
+  });
+
+  useEffect(() => {
+    apiFetch("/api/clinicians")
+      .then(users => {
+        setClinicians(users);
+        const firstClinician = users.find(u => u.role === "clinician") || users[0];
+        if (firstClinician) setClinicianId(String(firstClinician.id));
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const name = patientName.trim();
+    if (name.length < 2) {
+      setPatientMatches([]);
+      return;
+    }
+    const timer = setTimeout(() => {
+      apiFetch(`/api/patients/search/by-name?name=${encodeURIComponent(name)}`)
+        .then(setPatientMatches)
+        .catch(() => setPatientMatches([]));
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [patientName]);
+
+  const selectPatient = (p) => {
+    setPatientName(p.patient_name || "");
+    setPatientId(p.patient_id || "");
+    setBirthYear(String(p.birth_year || ""));
+    setSex(p.sex || "");
+    setPatientFound(true);
+    setPatientMatches([]);
+    setError("");
+  };
+
+  const checkByTc = async (tcValue) => {
+    const tc = normalizeTc(tcValue);
+    setPatientId(tc);
+    setPatientFound(null);
+    if (tc.length !== 11) return;
+    if (!isValidTc(tc)) {
+      setError(t.invalid_tc);
+      return;
+    }
+    setError("");
+    const data = await apiFetch(`/api/patients/${tc}/check`);
+    if (data.found) {
+      selectPatient(data);
+    } else {
+      setPatientFound(false);
+    }
+  };
+
+  const handleFile = (f) => {
+    const name = f.name.toLowerCase();
+    const ok = [".nii", ".nii.gz", ".dcm", ".zip"].some(ext => name.endsWith(ext));
+    if (!ok) {
+      setError(lang==="tr" ? "Desteklenmeyen dosya formatı. .nii, .nii.gz, .dcm veya .zip yükleyin." : "Unsupported file format. Upload .nii, .nii.gz, .dcm, or .zip.");
+      return;
+    }
+    if (f.size > 2 * 1024 ** 3) {
+      setError(lang==="tr" ? "Dosya boyutu 2 GB sınırını aşıyor." : "File exceeds the 2 GB limit.");
+      return;
+    }
+    setFile(f);
+    setError("");
+  };
+  const clearFile = (e) => { e.stopPropagation(); setFile(null); if(fileRef.current) fileRef.current.value=""; };
+
+  const onDrop = (e) => {
+    e.preventDefault();
+    dropRef.current?.classList.remove("drag-over");
+    if (e.dataTransfer.files?.[0]) handleFile(e.dataTransfer.files[0]);
+  };
+
+  const formatBytes = (b) => {
+    if (b < 1024) return b + " B";
+    if (b < 1024**2) return (b/1024).toFixed(1) + " KB";
+    if (b < 1024**3) return (b/1024**2).toFixed(1) + " MB";
+    return (b/1024**3).toFixed(2) + " GB";
+  };
+
+  const runAnalysis = async () => {
+    if (!file) return;
+    const tc = normalizeTc(patientId);
+    if (!patientName.trim()) return setError(lang==="tr" ? "Hasta adı zorunludur." : "Patient name is required.");
+    if (!isValidTc(tc)) return setError(t.invalid_tc);
+    if (!birthYear || !sex) return setError(lang==="tr" ? "Doğum yılı ve cinsiyet zorunludur." : "Birth year and sex are required.");
+    if (!scanDate || !clinicianId) return setError(lang==="tr" ? "Çekim tarihi ve istekçi klinisyen zorunludur." : "Scan date and requesting clinician are required.");
+
+    setLoading(true);
+    setProgressText(lang==="tr" ? "Hasta kaydı kontrol ediliyor" : "Checking patient record");
+    setError("");
+    try {
+      if (patientFound !== true) {
+        await apiFetch("/api/patients", {
+          method: "POST",
+          body: JSON.stringify({
+            patient_id: tc,
+            patient_name: patientName.trim(),
+            birth_year: Number(birthYear),
+            sex,
+          }),
+        }).catch(err => {
+          if (err.detail !== "patient_id_exists") throw err;
+        });
+      }
+
+      const form = new FormData();
+      form.append("file", file);
+      const query = new URLSearchParams({
+        patient_id: tc,
+        scan_date: scanDate,
+        requesting_clinician_id: clinicianId,
+        clinician_note: clinicianNote,
+      });
+      setProgressText(lang==="tr" ? "Analiz kaydı başlatılıyor" : "Starting analysis");
+      const res = await fetch(`/api/analyses?${query.toString()}`, {
+        method: "POST",
+        body: form,
+        credentials: "same-origin",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(errorMessage(data.detail));
+        return;
+      }
+      const analysisId = data.analysis_id;
+      const finalData = await waitForAnalysis(analysisId);
+      const score = parseFloat(finalData.centiloid);
+      const clinician = clinicians.find(c => String(c.id) === String(clinicianId));
+      const result = {
+        centiloid: score,
+        risk: finalData.risk_category,
+        confLow: finalData.confidence_low,
+        confHigh: finalData.confidence_high,
+        slices: {
+          axial: finalData.slice_axial,
+          coronal: finalData.slice_coronal,
+          sagittal: finalData.slice_sagittal,
+        },
+        maskedSlices: {
+          axial: finalData.masked_slice_axial,
+          coronal: finalData.masked_slice_coronal,
+          sagittal: finalData.masked_slice_sagittal,
+        },
+        input_format: finalData.input_format || "MRI",
+        processing_time_s: finalData.processing_time_s,
+        model_info: { name: finalData.model_version || "LateFusion-v1.0" },
+        patientId:   patientId   || "—",
+        patientName: patientName || "—",
+        clinician:   clinician?.full_name || "—",
+        scanDate:    scanDate    || "—",
+        modality: "MRI",
+        fileName: file.name,
+        analysisId,
+        mriDeleted: finalData.mri_deleted,
+        interpretation: lang === "tr" ? finalData.interpretation_tr : finalData.interpretation_en,
+      };
+      onResult(result);
+    } catch (err) {
+      setError(lang==="tr" ? `Analiz tamamlanamadı. ${err.message || ""}` : `Analysis could not be completed. ${err.message || ""}`);
+    } finally {
+      setLoading(false);
+      setProgressText("");
+    }
+  };
+
+  const formReady = file && patientName.trim() && isValidTc(patientId) && birthYear && sex && scanDate && clinicianId;
+
+  return (
+    <div className="fade-in">
+      {loading && <LoadingOverlay lang={lang} />}
+      <div className="section-header">
+        <div className="section-title">{t.new_analysis}</div>
+      </div>
+
+      {error && (
+        <div className="error-banner">
+          <Icon d={ICONS.info} size={16} stroke="#dc2626" />
+          {error}
+        </div>
+      )}
+
+      {/* Patient info */}
+      <div className="card" style={{marginBottom: 18}}>
+        <div className="card-header">
+          <div className="card-title">{lang==="tr"?"Hasta Seçimi":"Patient Selection"}</div>
+        </div>
+        <div className="card-body">
+          <div className="form-grid-3">
+            <div>
+              <label className="field-label">{t.patient_name}</label>
+              <input className="field-input" value={patientName} onChange={e=>setPatientName(e.target.value)} placeholder={lang==="tr"?"Ad Soyad":"Full Name"} />
+              {patientMatches.length > 0 && (
+                <div style={{marginTop:6, border:"1px solid var(--border)", borderRadius:8, overflow:"hidden", background:"#fff"}}>
+                  {patientMatches.map(p => (
+                    <button key={p.id} type="button" onClick={()=>selectPatient(p)}
+                      style={{display:"flex", justifyContent:"space-between", width:"100%", border:"none", background:"#fff", padding:"8px 10px", cursor:"pointer", fontFamily:"inherit", fontSize:12.5}}>
+                      <span>{p.patient_name}</span><span style={{fontFamily:"DM Mono, monospace", color:"var(--text-3)"}}>{p.patient_id}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div>
+              <label className="field-label">{t.tc_id}</label>
+              <input className="field-input" value={patientId} onChange={e=>checkByTc(e.target.value)} placeholder={lang==="tr"?"11 haneli TC kimlik no":"11-digit national ID"} inputMode="numeric" />
+            </div>
+            <div>
+              <label className="field-label">{t.birth_year}</label>
+              <input className="field-input" value={birthYear} onChange={e=>setBirthYear(e.target.value.replace(/\D/g,"").slice(0,4))} placeholder={lang==="tr"?"örn. 1965":"e.g. 1965"} inputMode="numeric" />
+            </div>
+          </div>
+          <div className="form-grid-3" style={{marginBottom:0}}>
+            <div>
+              <label className="field-label">{t.sex}</label>
+              <select className="field-input" value={sex} onChange={e=>setSex(e.target.value)}>
+                <option value="">{lang==="tr"?"Seçiniz":"Select"}</option>
+                <option value="M">{t.sex_male}</option>
+                <option value="F">{t.sex_female}</option>
+                <option value="other">{t.sex_other}</option>
+              </select>
+            </div>
+            <div>
+              <label className="field-label">{t.scan_date}</label>
+              <input className="field-input" type="date" value={scanDate} onChange={e=>setScanDate(e.target.value)} />
+            </div>
+            <div>
+              <label className="field-label">{t.clinician}</label>
+              <select className="field-input" value={clinicianId} onChange={e=>setClinicianId(e.target.value)}>
+                <option value="">{lang==="tr"?"Klinisyen seçin":"Select clinician"}</option>
+                {clinicians.map(u => <option key={u.id} value={u.id}>{u.full_name || u.username}</option>)}
+              </select>
+            </div>
+          </div>
+          {patientFound === true && <div className="meta-strip" style={{marginTop:14}}>{t.patient_found}</div>}
+          {patientFound === false && <div className="meta-strip" style={{marginTop:14}}>{t.patient_new}</div>}
+          <div style={{marginTop:14}}>
+            <label className="field-label">{t.clinician_note}</label>
+            <textarea className="field-input" value={clinicianNote} onChange={e=>setClinicianNote(e.target.value)} rows={3}
+              placeholder={lang==="tr"?"Opsiyonel klinisyen notu":"Optional clinician note"}></textarea>
+          </div>
+        </div>
+      </div>
+
+      {/* Upload */}
+      <div className="card" style={{marginBottom: 18}}>
+        <div className="card-header">
+          <div className="card-title">{t.upload_mri}</div>
+        </div>
+        <div className="card-body">
+          {file ? (
+            <div className="file-chosen-row">
+              <Icon d={ICONS.file} size={16} stroke="var(--accent)" />
+              <span className="file-chosen-name">{file.name}</span>
+              <span className="file-chosen-size">{formatBytes(file.size)}</span>
+              <button className="btn-x" onClick={clearFile} title={t.remove_file}>
+                <Icon d={ICONS.x} size={14}/>
+              </button>
+            </div>
+          ) : (
+            <div
+              className="upload-zone"
+              ref={dropRef}
+              onClick={()=>fileRef.current?.click()}
+              onDragOver={e=>{e.preventDefault();dropRef.current?.classList.add("drag-over");}}
+              onDragLeave={()=>dropRef.current?.classList.remove("drag-over")}
+              onDrop={onDrop}
+            >
+              <div className="upload-icon-wrap">
+                <Icon d={ICONS.upload} size={24} stroke="var(--accent)" />
+              </div>
+              <div className="upload-primary">{t.drop_here}</div>
+              <div className="upload-secondary">{t.max_size}</div>
+              <div className="fmt-chips">
+                {[".nii.gz",".nii",".dcm",".zip"].map(f => (
+                  <span key={f} className="fmt-chip">{f}</span>
+                ))}
+              </div>
+              <div style={{marginTop:12, padding:"8px 14px", background:"rgba(234,179,8,0.07)", border:"1px solid rgba(234,179,8,0.3)", borderRadius:7, fontSize:12, color:"#854d0e", maxWidth:520, margin:"12px auto 0"}}>
+                {lang==="tr"
+                  ? "Yüklenen MRI yalnızca analiz sırasında geçici olarak tutulur; sonuçlar kaydedildikten sonra dosya silinir."
+                  : "Uploaded MRI is kept only during processing; the file is deleted after results are stored."}
+              </div>
+            </div>
+          )}
+          <input type="file" ref={fileRef} style={{display:"none"}}
+            accept=".nii,.nii.gz,.dcm,.zip"
+            onChange={e=>{ if(e.target.files?.[0]) handleFile(e.target.files[0]); }} />
+
+          {progressText && <div className="meta-strip" style={{marginBottom:14}}>{progressText}</div>}
+          <button className="btn-primary" disabled={!formReady || loading} onClick={runAnalysis} style={{marginTop: file?0:16}}>
+            <LogoMark size={16} />
+            {t.run_analysis}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Results View ──────────────────────────────────────────────────────
+function ResultsView({ result, lang, onNew }) {
+  const t = T[lang];
+  const risk = result.risk;
+  const meta = RISK_META[risk];
+  const interp = result.interpretation || INTERP[risk][lang];
+  const confPct = (v) => Math.min((v / 150) * 100, 100);
+  const [imageMode, setImageMode] = useState("raw");
+  const [reportReady, setReportReady] = useState(!!result.reportReady);
+  const [reportMsg, setReportMsg] = useState("");
+  const imageSets = {
+    raw: result.slices,
+    masked: result.maskedSlices,
+  };
+  const currentSlices = imageSets[imageMode] || {};
+  const hasSliceSet = (set) => !!(set?.axial || set?.coronal || set?.sagittal);
+  const hasRaw = hasSliceSet(result.slices);
+  const hasMasked = hasSliceSet(result.maskedSlices);
+  const hasCurrentSlices = hasSliceSet(currentSlices);
+
+  const createReport = async () => {
+    if (!result.analysisId) return;
+    setReportMsg(lang==="tr" ? "Rapor oluşturuluyor..." : "Creating report...");
+    try {
+      await apiFetch(`/api/reports/${result.analysisId}`, {
+        method: "POST",
+        body: JSON.stringify({ language: lang }),
+      });
+      setReportReady(true);
+      setReportMsg(t.report_ready);
+    } catch (err) {
+      setReportMsg(lang==="tr" ? "Rapor oluşturulamadı." : "Report could not be created.");
+    }
+  };
+
+  const openReport = () => {
+    if (!result.analysisId) return;
+    window.open(`/api/reports/${result.analysisId}/pdf`, "_blank");
+  };
+
+  return (
+    <div className="fade-in" id="results-view">
+      <div className="section-header">
+        <div className="section-title">{t.modal_title}</div>
+        <div style={{display:"flex", gap:10}}>
+          <button className="btn-navy" onClick={createReport}>
+            <Icon d={ICONS.file} size={14} stroke="#fff" />
+            {reportReady ? t.report_ready : t.create_report}
+          </button>
+          <button className="btn-secondary" onClick={openReport} disabled={!reportReady}>
+            <Icon d={ICONS.print} size={14} />
+            {t.view_report}
+          </button>
+          <button className="btn-secondary" onClick={onNew}>
+            <Icon d={ICONS.plus} size={14} />
+            {t.new_analysis_btn}
+          </button>
+        </div>
+      </div>
+      {reportMsg && (
+        <div className="meta-strip" style={{marginBottom:18}}>
+          {reportMsg}
+        </div>
+      )}
+
+      {/* Patient info strip */}
+      <div className="meta-strip" style={{marginBottom:18}}>
+        <span>{t.patient_id}: <b>{result.patientId}</b></span>
+        {result.patientName !== "—" && <span>{t.patient_name}: <b>{result.patientName}</b></span>}
+        <span>{t.clinician}: <b>{result.clinician}</b></span>
+        <span>{t.scan_date}: <b>{result.scanDate}</b></span>
+        <span>{t.modality}: <b><span className={`modality-chip ${result.modality.toLowerCase()}`}>{result.modality}</span></b></span>
+      </div>
+
+      {/* Main results grid */}
+      <div className="results-grid">
+        {/* Gauge card */}
+        <div className="gauge-card">
+          <div className="gauge-score-label">{t.centiloid}</div>
+          <GaugeSVG score={result.centiloid} size={260} />
+          <div className="gauge-legend">
+            {[
+              { color:"#16a34a", label: lang==="tr"?"Negatif < 25":"Negative < 25" },
+              { color:"#d97706", label: lang==="tr"?"Sınırda 25–50":"Borderline 25–50" },
+              { color:"#ea580c", label: lang==="tr"?"Yüksek 50–100":"Elevated 50–100" },
+              { color:"#dc2626", label: lang==="tr"?"Kritik > 100":"High > 100" },
+            ].map((l,i)=>(
+              <div key={i} className="legend-row">
+                <div className="legend-dot" style={{background:l.color}}></div>
+                {l.label}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Info panel */}
+        <div className="info-panel">
+          {/* Risk + interpretation */}
+          <div className="result-section">
+            <div className="result-section-label">{t.risk_level}</div>
+            <div className="risk-row">
+              <div>
+                <div className="risk-value">{result.centiloid.toFixed(1)}</div>
+                <div className="risk-unit">CL</div>
+              </div>
+              <div style={{flex:1}}>
+                <RiskBadge risk={risk} lang={lang} />
+                <div className="interp-text">{interp}</div>
+              </div>
+            </div>
+            {/* Confidence interval */}
+          </div>
+
+          {/* MRI slices */}
+          <div className="result-section">
+            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:12, marginBottom:12}}>
+              <div className="result-section-label" style={{marginBottom:0}}>{t.mri_slices}</div>
+              <div className="tab-row" style={{width:"auto", minWidth:360}}>
+                <button className={`tab-btn${imageMode==="raw"?" active":""}`} style={{padding:"6px 12px"}} onClick={()=>setImageMode("raw")} disabled={!hasRaw}>{t.raw_mri}</button>
+                <button className={`tab-btn${imageMode==="masked"?" active":""}`} style={{padding:"6px 12px"}} onClick={()=>setImageMode("masked")} disabled={!hasMasked}>{t.masked_mri}</button>
+              </div>
+            </div>
+            {hasCurrentSlices ? (
+              <div className="slices-grid">
+                {["axial","coronal","sagittal"].map(type => (
+                  <div key={type} className="slice-wrap">
+                    <BrainSlice type={type} risk={risk} src={currentSlices && currentSlices[type]} />
+                    <div className="slice-label">{t[type]}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="empty-state" style={{padding:"30px 18px"}}>
+                <Icon d={ICONS.info} size={28} stroke="var(--text-3)" />
+                <p>
+                  {lang==="tr"
+                    ? "Bu kayıt için gerçek MRI önizlemesi bulunmuyor."
+                    : "No real MRI preview is available for this record."}
+                </p>
+                <small>
+                  {lang==="tr"
+                    ? "Yeni analizler tamamlandığında referans ve maskelenmiş MRI görselleri burada gösterilir."
+                    : "Newly completed analyses will show reference and masked MRI images here."}
+                </small>
+              </div>
+            )}
+          </div>
+
+          {/* Metadata */}
+          <div className="meta-strip">
+            <span>{t.format}: <b>{result.input_format}</b></span>
+            <span>{t.proc_time}: <b>{result.processing_time_s}s</b></span>
+            <span>{t.model}: <b>{result.model_info.name}</b></span>
+            <span>{lang==="tr"?"Analiz ID":"Analysis ID"}: <b>{result.analysisId}</b></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Dashboard View ────────────────────────────────────────────────────
+function DashboardView({ lang, onNavigate, onOpenAnalysis }) {
+  const t = T[lang];
+  const [dashboard, setDashboard] = useState(null);
+
+  useEffect(() => {
+    apiFetch("/api/dashboard")
+      .then(setDashboard)
+      .catch(() => setDashboard(null));
+  }, []);
+
+  const recent = (dashboard?.recent_analyses || []).map(a => ({
+    id: a.patient_id,
+    analysisId: a.id,
+    name: a.patient_name || a.patient_id,
+    age: a.birth_year ? new Date().getFullYear() - a.birth_year : "—",
+    modality: "MRI",
+    lastScan: a.scan_date || "—",
+    centiloid: Number(a.centiloid || 0),
+    risk: a.risk_category || "negative",
+  }));
+
+  return (
+    <div className="fade-in">
+      <div className="section-header">
+        <div className="section-title">{t.dashboard_title}</div>
+        <button className="btn-primary" style={{width:"auto",padding:"8px 18px"}} onClick={()=>onNavigate("new")}>
+          <Icon d={ICONS.plus} size={14} stroke="#fff"/>
+          {t.new_analysis}
+        </button>
+      </div>
+
+      <div className="stats-grid">
+        <StatCard label={t.stats_total} value={dashboard?.total_analyses ?? "—"} color="#2563eb" />
+        <StatCard label={lang==="tr"?"Bu Ay":"This Month"} value={dashboard?.this_month ?? "—"} color="#15803d" />
+        <StatCard label={lang==="tr"?"Takip Gereken":"Follow-up Due"} value={dashboard?.critical_follow_up ?? "—"} color="#dc2626" />
+        <StatCard label={lang==="tr"?"Son Kayıt":"Latest"} value={recent[0]?.centiloid?.toFixed?.(1) || "—"} color="#ea580c" />
+      </div>
+
+      <div className="card">
+        <div className="card-header" style={{marginBottom:0}}>
+          <div className="card-title">{t.recent_analyses}</div>
+          <button className="btn-secondary" style={{fontSize:12,padding:"5px 12px"}} onClick={()=>onNavigate("patients")}>
+            {lang==="tr"?"Tümünü Gör":"View All"}
+          </button>
+        </div>
+        <div className="card-body" style={{padding:"0 0 0 0"}}>
+          <table className="patients-table">
+            <thead>
+              <tr>
+                <th>{t.patient_name}</th>
+                <th>{t.age}</th>
+                <th>{t.modality}</th>
+                <th>{t.last_scan}</th>
+                <th>{lang==="tr"?"Centiloid":"Centiloid"}</th>
+                <th>{t.result}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recent.length === 0 ? (
+                <tr>
+                  <td colSpan={6}>
+                    <div className="empty-state">
+                      <Icon d={ICONS.info} size={28} stroke="var(--text-3)" />
+                      <p>{lang==="tr"?"Henüz tamamlanmış analiz yok":"No completed analyses yet"}</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : recent.map(p => (
+                <tr key={`${p.id}-${p.analysisId}`} onClick={()=>onOpenAnalysis(p.id)}>
+                  <td>
+                    <div className="pt-name">{p.name}</div>
+                    <div className="pt-id">{maskTc(p.id)}</div>
+                  </td>
+                  <td>{p.age}</td>
+                  <td><span className={`modality-chip ${p.modality.toLowerCase()}`}>{p.modality}</span></td>
+                  <td>{p.lastScan}</td>
+                  <td style={{minWidth:120}}><CentiloidBar value={p.centiloid} /></td>
+                  <td><RiskBadge risk={p.risk} lang={lang} size="sm" /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Patients View ─────────────────────────────────────────────────────
+function PatientsView({ lang, onOpenPatient, onPatientDeleted }) {
+  const t = T[lang];
+  const [search, setSearch] = useState("");
+  const [riskFilter, setRiskFilter] = useState("all");
+  const [patients, setPatients] = useState([]);
+  const [confirmDelete, setConfirmDelete] = useState(null); // patient id to delete
+
+  useEffect(() => {
+    apiFetch("/api/patients")
+      .then(items => setPatients(items.map(p => ({
+        id: p.patient_id,
+        name: p.patient_name || p.patient_id,
+        age: new Date().getFullYear() - p.birth_year,
+        gender: p.sex,
+        lastScan: p.last_scan_date || "—",
+        clinician: p.last_clinician || "—",
+        centiloid: p.last_centiloid ?? 0,
+        risk: p.last_risk_category || "negative",
+        modality: "MRI",
+        analysis_count: p.analysis_count,
+      }))))
+      .catch(() => setPatients([]));
+  }, []);
+
+  const deletePatient = async (patientId) => {
+    try {
+      await apiFetch(`/api/patients/${encodeURIComponent(patientId)}`, { method: "DELETE" });
+      setPatients(ps => ps.filter(p => p.id !== patientId));
+      setConfirmDelete(null);
+      if (onPatientDeleted) onPatientDeleted();
+    } catch (_) {}
+  };
+
+  const filtered = patients.filter(p => {
+    const matchSearch = !search ||
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.id.toLowerCase().includes(search.toLowerCase());
+    const matchRisk = riskFilter === "all" || p.risk === riskFilter;
+    return matchSearch && matchRisk;
+  });
+
+  const riskOptions = [
+    { value:"all", label: t.all_risks },
+    { value:"negative", label: lang==="tr"?"Negatif":"Negative" },
+    { value:"borderline", label: lang==="tr"?"Sınırda":"Borderline" },
+    { value:"elevated", label: lang==="tr"?"Yüksek":"Elevated" },
+    { value:"high", label: lang==="tr"?"Kritik":"High" },
+  ];
+
+  return (
+    <div className="fade-in">
+      <div className="section-header">
+        <div className="section-title">{t.patients_title}</div>
+        <div style={{fontSize:12,color:"var(--text-3)"}}>
+          {filtered.length} {lang==="tr"?"hasta":"patients"}
+        </div>
+      </div>
+
+      <div className="patients-toolbar">
+        <div className="search-field">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            type="text"
+            placeholder={t.search_patient}
+            value={search}
+            onChange={e=>setSearch(e.target.value)}
+          />
+        </div>
+        <select className="filter-select" value={riskFilter} onChange={e=>setRiskFilter(e.target.value)}>
+          {riskOptions.map(o=>(
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="card">
+        <table className="patients-table">
+          <thead>
+            <tr>
+              <th>{t.patient_name}</th>
+              <th>{t.age}</th>
+              <th>{t.clinician}</th>
+              <th>{t.modality}</th>
+              <th>{t.last_scan}</th>
+              <th>{lang==="tr"?"Centiloid":"Centiloid"}</th>
+              <th>{t.result}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan={8}>
+                  <div className="empty-state">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <p>{lang==="tr"?"Sonuç bulunamadı":"No results found"}</p>
+                    <small>{lang==="tr"?"Arama kriterlerini değiştirin":"Try adjusting your search or filter"}</small>
+                  </div>
+                </td>
+              </tr>
+            ) : filtered.map(p => (
+              <tr key={`${p.id}-${p.lastScan}`}>
+                <td>
+                  <div className="pt-name">{p.name}</div>
+                  <div className="pt-id">{maskTc(p.id)}</div>
+                </td>
+                <td>{p.age}</td>
+                <td style={{color:"var(--text-3)"}}>{p.clinician}</td>
+                <td><span className={`modality-chip ${p.modality.toLowerCase()}`}>{p.modality}</span></td>
+                <td style={{fontFamily:"'DM Mono',monospace",fontSize:12.5}}>{p.lastScan}</td>
+                <td style={{minWidth:130}}><CentiloidBar value={p.centiloid} /></td>
+                <td><RiskBadge risk={p.risk} lang={lang} size="sm" /></td>
+                <td style={{display:"flex", gap:6, alignItems:"center"}}>
+                  <button className="btn-secondary" style={{padding:"5px 10px",fontSize:11.5}}
+                    onClick={(e)=>{ e.stopPropagation(); onOpenPatient(p.id); }}>
+                    {t.view}
+                  </button>
+                  <button className="btn-secondary" style={{padding:"5px 10px",fontSize:11.5,color:"#dc2626",borderColor:"#fca5a5"}}
+                    onClick={(e)=>{ e.stopPropagation(); setConfirmDelete(p.id); }}>
+                    {lang==="tr"?"Sil":"Delete"}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {confirmDelete && (
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.35)",zIndex:999,display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <div style={{background:"#fff",borderRadius:12,padding:"28px 32px",maxWidth:380,width:"90%",boxShadow:"0 12px 40px rgba(0,0,0,0.18)"}}>
+            <div style={{fontWeight:700,fontSize:16,marginBottom:10,color:"var(--text)"}}>
+              {lang==="tr"?"Hastayı sil":"Delete patient"}
+            </div>
+            <p style={{fontSize:13.5,color:"var(--text-2)",marginBottom:22,lineHeight:1.6}}>
+              {lang==="tr"
+                ? "Bu hasta ve tüm analizleri kalıcı olarak silinecek. Geri alınamaz."
+                : "This patient and all their analyses will be permanently deleted. This cannot be undone."}
+            </p>
+            <div style={{display:"flex",gap:10,justifyContent:"flex-end"}}>
+              <button className="btn-secondary" onClick={()=>setConfirmDelete(null)}>{lang==="tr"?"İptal":"Cancel"}</button>
+              <button className="btn-primary" style={{background:"#dc2626",width:"auto",padding:"8px 18px"}}
+                onClick={()=>deletePatient(confirmDelete)}>
+                {lang==="tr"?"Evet, sil":"Yes, delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Patient Detail View ───────────────────────────────────────────────
+function PatientDetailView({ lang, patient, onOpenAnalysis, onNewAnalysis, onBack }) {
+  const t = T[lang];
+  const analyses = [...(patient?.analyses || [])]
+    .filter(a => a.status === "completed")
+    .sort((a,b) => String(a.scan_date).localeCompare(String(b.scan_date)));
+  const last = analyses[analyses.length - 1];
+  const prev = analyses[analyses.length - 2];
+  const yearlyRate = (prev && last)
+    ? ((Number(last.centiloid || 0) - Number(prev.centiloid || 0)) /
+       Math.max(0.1, (new Date(last.scan_date) - new Date(prev.scan_date)) / 31557600000))
+    : null;
+  const chartMax = Math.max(120, ...analyses.map(a => Number(a.centiloid || 0) + 12));
+
+  return (
+    <div className="fade-in">
+      <div className="section-header">
+        <div>
+          <button className="btn-secondary" style={{padding:"5px 10px", fontSize:12, marginBottom:10}} onClick={onBack}>
+            {lang==="tr"?"Hasta Listesine Dön":"Back to Patients"}
+          </button>
+          <div className="section-title">{patient?.patient_name || patient?.patient_id}</div>
+          <div style={{fontSize:12.5, color:"var(--text-3)", marginTop:3}}>
+            {t.patient_id}: {patient?.patient_id} · {t.birth_year}: {patient?.birth_year} · {t.sex}: {patient?.sex}
+          </div>
+        </div>
+        <button className="btn-primary" style={{width:"auto", padding:"8px 18px"}} onClick={onNewAnalysis}>
+          <Icon d={ICONS.plus} size={14} stroke="#fff" />
+          {lang==="tr"?"Bu Hastaya Yeni Analiz Ekle":"Add Analysis for Patient"}
+        </button>
+      </div>
+
+      <div className="stats-grid" style={{gridTemplateColumns:"repeat(3,1fr)", marginBottom:20}}>
+        <StatCard label={lang==="tr"?"Analiz Sayısı":"Analysis Count"} value={analyses.length} color="#2563eb" />
+        <StatCard label={lang==="tr"?"Son Centiloid":"Latest Centiloid"} value={last ? Number(last.centiloid || 0).toFixed(1) : "—"} color="#ea580c" />
+        <StatCard label={lang==="tr"?"Yıllık Değişim":"Annual Change"} value={yearlyRate == null ? "—" : `${yearlyRate >= 0 ? "+" : ""}${yearlyRate.toFixed(1)} CL/yıl`} color="#dc2626" />
+      </div>
+
+      <div className="card" style={{padding:"22px 24px", marginBottom:20}}>
+        <div className="card-title" style={{marginBottom:18}}>{lang==="tr"?"Centiloid Zaman Serisi":"Centiloid Time Series"}</div>
+        {analyses.length === 0 ? (
+          <div className="empty-state">
+            <Icon d={ICONS.info} size={28} stroke="var(--text-3)" />
+            <p>{lang==="tr"?"Bu hasta için analiz kaydı yok":"No analyses for this patient"}</p>
+          </div>
+        ) : (() => {
+          const CHART_H = 180;
+          const BAR_W = 72;
+          const GAP = 28;
+          const PAD_L = 44;
+          const PAD_B = 36;
+          const PAD_T = 28;
+          const plotH = CHART_H - PAD_T - PAD_B;
+          const allVals = analyses.map(a => Number(a.centiloid || 0));
+          const dataMin = Math.min(0, ...allVals);
+          const dataMax = Math.max(120, ...allVals);
+          const range = dataMax - dataMin || 1;
+          const toY = v => PAD_T + plotH * (1 - (v - dataMin) / range);
+          const zeroY = toY(0);
+          const chartW = PAD_L + analyses.length * BAR_W + (analyses.length - 1) * GAP + 24;
+          const refLines = [25, 50, 100].filter(v => v >= dataMin && v <= dataMax);
+          return (
+            <div style={{overflowX:"auto"}}>
+              <svg width={Math.max(chartW, "100%")} height={CHART_H} style={{display:"block", minWidth: chartW}}>
+                {/* Reference lines */}
+                {refLines.map(v => {
+                  const ry = toY(v);
+                  return (
+                    <g key={v}>
+                      <line x1={PAD_L} x2={chartW} y1={ry} y2={ry} stroke="#e2e8f0" strokeWidth={1} strokeDasharray="4 3" />
+                      <text x={PAD_L - 6} y={ry + 4} textAnchor="end" fontSize={10} fill="#94a3b8">{v}</text>
+                    </g>
+                  );
+                })}
+                {/* Zero line */}
+                {dataMin < 0 && (
+                  <line x1={PAD_L} x2={chartW} y1={zeroY} y2={zeroY} stroke="#cbd5e1" strokeWidth={1} />
+                )}
+                {/* Connecting line */}
+                {analyses.length > 1 && (
+                  <polyline
+                    points={analyses.map((a, i) => {
+                      const cx = PAD_L + i * (BAR_W + GAP) + BAR_W / 2;
+                      const cy = toY(Number(a.centiloid || 0));
+                      return `${cx},${cy}`;
+                    }).join(" ")}
+                    fill="none" stroke="#94a3b8" strokeWidth={1.5} strokeDasharray="4 3"
+                  />
+                )}
+                {/* Bars + dots */}
+                {analyses.map((a, i) => {
+                  const val = Number(a.centiloid || 0);
+                  const color = RISK_META[a.risk_category || "negative"]?.color || "#2563eb";
+                  const cx = PAD_L + i * (BAR_W + GAP);
+                  const barTop = Math.min(toY(val), zeroY);
+                  const barH = Math.max(4, Math.abs(toY(val) - zeroY));
+                  const dotY = toY(val);
+                  return (
+                    <g key={a.id} style={{cursor:"pointer"}} onClick={() => onOpenAnalysis(a.id)}>
+                      <rect x={cx} y={barTop} width={BAR_W} height={barH}
+                        rx={6} fill={color} opacity={0.18} />
+                      <circle cx={cx + BAR_W / 2} cy={dotY} r={6} fill={color} />
+                      <text x={cx + BAR_W / 2} y={dotY - 10} textAnchor="middle" fontSize={11} fontWeight="600" fill={color}>
+                        {val.toFixed(1)}
+                      </text>
+                      <text x={cx + BAR_W / 2} y={CHART_H - 8} textAnchor="middle" fontSize={10} fill="#94a3b8" fontFamily="'DM Mono',monospace">
+                        {String(a.scan_date || "").slice(0, 7)}
+                      </text>
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
+          );
+        })()}
+      </div>
+
+      <div className="card">
+        <table className="patients-table">
+          <thead>
+            <tr>
+              <th>{t.scan_date}</th>
+              <th>{t.report_score}</th>
+              <th>{t.report_risk}</th>
+              <th>{t.clinician}</th>
+              <th>{t.report_actions}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[...analyses].reverse().map(a => (
+              <tr key={a.id}>
+                <td style={{fontFamily:"'DM Mono',monospace", fontSize:12.5}}>{a.scan_date}</td>
+                <td style={{minWidth:130}}><CentiloidBar value={Number(a.centiloid || 0)} /></td>
+                <td><RiskBadge risk={a.risk_category || "negative"} lang={lang} size="sm" /></td>
+                <td style={{color:"var(--text-3)", fontSize:12.5}}>{a.requesting_clinician || a.clinician || "—"}</td>
+                <td>
+                  <button className="btn-secondary" style={{padding:"5px 10px", fontSize:11.5}} onClick={() => onOpenAnalysis(a.id)}>
+                    {t.view}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ── Reports View ─────────────────────────────────────────────────────
+function ReportsView({ lang, onOpenAnalysis }) {
+  const t = T[lang];
+  const [period, setPeriod] = useState("all");
+  const [exportMsg, setExportMsg] = useState("");
+  const [reports, setReports] = useState([]);
+
+  useEffect(() => {
+    apiFetch("/api/reports")
+      .then(data => setReports((data.items || []).map(r => ({
+        ...r,
+        reportId: `NA-${String(r.id).padStart(6, "0")}`,
+        id: r.patient_id,
+        name: r.patient_name || r.patient_id,
+        clinician: r.requesting_clinician || "—",
+        centiloid: r.centiloid,
+        risk: r.risk_category,
+        date: r.scan_date,
+        modality: "MRI",
+        exported: true,
+        analysisId: r.id,
+      }))))
+      .catch(() => setReports([]));
+  }, []);
+
+  const filtered = reports.filter(r => {
+    if (period === "week") {
+      const d = new Date(r.date);
+      const now = new Date("2026-05-03");
+      return (now - d) / 86400000 <= 7;
+    }
+    if (period === "month") {
+      return r.date.startsWith("2026-04") || r.date.startsWith("2026-05");
+    }
+    return true;
+  });
+
+  const doExport = (type) => {
+    if (type === "csv") {
+      window.location.href = "/api/reports/export-csv";
+      setExportMsg(lang === "tr" ? "CSV dışa aktarılıyor" : "CSV export started");
+    } else {
+      setExportMsg(lang === "tr" ? "Satırdaki PDF butonunu kullanın" : "Use the PDF button on a report row");
+    }
+    setTimeout(() => setExportMsg(""), 2500);
+  };
+
+  const totalExported = reports.filter(r => r.exported).length;
+  const thisMonth = reports.filter(r => r.date && r.date.startsWith(new Date().toISOString().slice(0,7))).length;
+
+  return (
+    <div className="fade-in">
+      <div className="section-header">
+        <div>
+          <div className="section-title">{t.reports_title}</div>
+          <div style={{fontSize:12.5, color:"var(--text-3)", marginTop:3}}>{t.reports_sub}</div>
+        </div>
+        <div style={{display:"flex", gap:10, alignItems:"center"}}>
+          {exportMsg && (
+            <span style={{fontSize:12.5, color:"#15803d", fontWeight:600, padding:"6px 12px", background:"#f0fdf4", border:"1px solid #86efac", borderRadius:7}}>
+              {exportMsg}
+            </span>
+          )}
+          <button className="btn-secondary" onClick={() => doExport("csv")}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            {t.export_csv}
+          </button>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="stats-grid" style={{gridTemplateColumns:"repeat(4,1fr)", marginBottom:20}}>
+        {[
+          { label: t.reports_total,      value: reports.length, color:"#2563eb" },
+          { label: t.reports_this_month, value: thisMonth,          color:"#7c3aed" },
+          { label: t.reports_exported,   value: totalExported,      color:"#15803d" },
+          { label: t.reports_pending,    value: reports.length - totalExported, color:"#d97706" },
+        ].map((s,i) => <StatCard key={i} label={s.label} value={s.value} color={s.color} />)}
+      </div>
+
+      {/* Filter */}
+      <div style={{display:"flex", gap:10, marginBottom:18, alignItems:"center"}}>
+        <div className="tab-row" style={{display:"inline-flex", width:"auto"}}>
+          {[
+            {v:"all", l: t.filter_all},
+            {v:"week", l: t.filter_week},
+            {v:"month", l: t.filter_month},
+          ].map(opt => (
+            <button key={opt.v} className={`tab-btn${period===opt.v?" active":""}`}
+              style={{padding:"7px 18px", flex:"none"}}
+              onClick={() => setPeriod(opt.v)}>
+              {opt.l}
+            </button>
+          ))}
+        </div>
+        <span style={{fontSize:12, color:"var(--text-3)", marginLeft:8}}>
+          {filtered.length} {lang==="tr"?"rapor":"reports"}
+        </span>
+      </div>
+
+      {/* Table */}
+      <div className="card">
+        <table className="patients-table">
+          <thead>
+            <tr>
+              <th>{lang==="tr"?"Rapor ID":"Report ID"}</th>
+              <th>{t.report_patient}</th>
+              <th>{t.report_clinician}</th>
+              <th>{t.report_modality}</th>
+              <th>{t.report_date}</th>
+              <th>{t.report_score}</th>
+              <th>{t.report_risk}</th>
+              <th>{lang==="tr"?"Durum":"Status"}</th>
+              <th>{t.report_actions}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map(r => (
+              <tr key={r.reportId}>
+                <td>
+                  <span style={{fontFamily:"'DM Mono',monospace", fontSize:12, color:"var(--accent)", fontWeight:600}}>
+                    {r.reportId}
+                  </span>
+                </td>
+                <td>
+                  <div className="pt-name">{r.name}</div>
+                  <div className="pt-id">{maskTc(r.id)}</div>
+                </td>
+                <td style={{color:"var(--text-3)", fontSize:12.5}}>{r.clinician}</td>
+                <td><span className={`modality-chip ${r.modality.toLowerCase()}`}>{r.modality}</span></td>
+                <td style={{fontFamily:"'DM Mono',monospace", fontSize:12.5}}>{r.date}</td>
+                <td style={{minWidth:110}}><CentiloidBar value={r.centiloid} /></td>
+                <td><RiskBadge risk={r.risk} lang={lang} size="sm" /></td>
+                <td>
+                  {r.exported
+                    ? <span style={{fontSize:11.5, color:"#15803d", fontWeight:600, background:"#f0fdf4", border:"1px solid #86efac", padding:"2px 8px", borderRadius:5}}>
+                        {lang==="tr"?"Teslim Edildi":"Delivered"}
+                      </span>
+                    : <span style={{fontSize:11.5, color:"#92400e", fontWeight:600, background:"#fffbeb", border:"1px solid #fcd34d", padding:"2px 8px", borderRadius:5}}>
+                        {lang==="tr"?"Bekliyor":"Pending"}
+                      </span>
+                  }
+                </td>
+                <td>
+                  <div style={{display:"flex", gap:6}}>
+                    <button className="btn-secondary" style={{padding:"4px 10px", fontSize:11.5}}
+                      onClick={() => window.open(`/api/reports/${r.analysisId}/pdf`, "_blank")}>
+                      {lang==="tr"?"PDF":"PDF"}
+                    </button>
+                    <button className="btn-secondary" style={{padding:"4px 10px", fontSize:11.5}}
+                      onClick={() => onOpenAnalysis(r.analysisId)}>
+                      {lang==="tr"?"Görüntüle":"View"}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ── Settings View ─────────────────────────────────────────────────────
+function SettingsView({ lang, currentUser, onLogout, onLicenseChange }) {
+  const t = T[lang];
+  const [activeTab, setActiveTab] = useState("profile");
+  const [saved, setSaved] = useState(false);
+  const [profile, setProfile] = useState({
+    name: currentUser?.full_name || "Sistem Yöneticisi",
+    title: currentUser?.title || "Dr.",
+    dept: currentUser?.department || "Nöroloji",
+    email: currentUser?.username || "admin@neuroanalyse.local",
+    hospital: "",
+  });
+  const [settings, setSettings] = useState(null);
+  const [modelCfg, setModelCfg] = useState({
+    model: "Small3DResNetRegressor (Late Fusion)",
+    threshold: 25,
+    showConfidence: true,
+    autoReport: false,
+  });
+  const [integrations, setIntegrations] = useState({
+    dicom: "dicom://pacs.hastane.local:4242",
+    ris: "https://ris.hastane.local/api",
+    pacs: "",
+    apiKey: "sk-na-***********************4f2a",
+  });
+  const [security, setSecurity] = useState({
+    twofa: true,
+    session: 30,
+    audit: true,
+    emailNotif: true,
+    highAlert: true,
+  });
+  const [users, setUsers] = useState([]);
+  const [auditLogs, setAuditLogs] = useState([]);
+
+  useEffect(() => {
+    let alive = true;
+    apiFetch("/api/settings")
+      .then(data => {
+        if (!alive) return;
+        setSettings(data);
+        onLicenseChange?.(data.license);
+        setProfile(p => ({ ...p, hospital: data.institution_name || p.hospital }));
+        setSecurity(s => ({ ...s, session: data.session_timeout_minutes || s.session }));
+        setModelCfg(m => ({
+          ...m,
+          model: data.model_name || m.model,
+          threshold: data.cl_thresholds?.negative || m.threshold,
+        }));
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+
+  useEffect(() => {
+    if (activeTab !== "security" || currentUser?.role !== "admin") return;
+    apiFetch("/api/users").then(setUsers).catch(() => setUsers([]));
+    apiFetch("/api/audit?limit=20").then(data => setAuditLogs(data.items || [])).catch(() => setAuditLogs([]));
+  }, [activeTab, currentUser?.role]);
+
+  const unlockUser = async (uid) => {
+    await apiFetch(`/api/users/${uid}/unlock`, { method: "POST" });
+    setUsers(items => items.map(u => u.id === uid ? { ...u, is_locked: false, failed_attempts: 0 } : u));
+    apiFetch("/api/audit?limit=20").then(data => setAuditLogs(data.items || [])).catch(() => {});
+  };
+
+  const doSave = async () => {
+    try {
+      await apiFetch("/api/profile", {
+        method: "PUT",
+        body: JSON.stringify({
+          full_name: profile.name,
+          title: profile.title,
+          department: profile.dept,
+          language: lang,
+        }),
+      });
+      if (currentUser?.role === "admin") {
+        await apiFetch("/api/settings", {
+          method: "PUT",
+          body: JSON.stringify({
+            institution_name: profile.hospital,
+            session_timeout_minutes: security.session,
+          }),
+        });
+        const fresh = await apiFetch("/api/settings");
+        setSettings(fresh);
+        onLicenseChange?.(fresh.license);
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (_) {
+      setSaved(false);
+    }
+  };
+
+  const settingsTabs = [
+    { id:"profile",     icon: ICONS.users, label: t.set_profile },
+    ...(currentUser?.role === "admin" ? [{ id:"system", icon: ICONS.settings, label: t.set_system }] : []),
+    ...(currentUser?.role === "admin" ? [{ id:"license", icon: ICONS.file, label: t.license }] : []),
+    { id:"model",       icon: null, label: t.set_model },
+    { id:"security",    icon: ICONS.settings, label: t.set_security },
+  ];
+
+  const SwitchToggle = ({ value, onChange }) => (
+    <div
+      onClick={() => onChange(!value)}
+      style={{
+        width:40, height:22, borderRadius:99, cursor:"pointer",
+        background: value ? "var(--accent)" : "#d1d5db",
+        position:"relative", transition:"background 0.2s", flexShrink:0,
+      }}>
+      <div style={{
+        position:"absolute", top:3, left: value ? 20 : 3,
+        width:16, height:16, borderRadius:"50%", background:"#fff",
+        boxShadow:"0 1px 3px rgba(0,0,0,0.2)", transition:"left 0.2s",
+      }}></div>
+    </div>
+  );
+
+  const FieldRow = ({ label, children, hint }) => (
+    <div style={{display:"flex", flexDirection:"column", gap:5, marginBottom:16}}>
+      <label className="field-label">{label}</label>
+      {children}
+      {hint && <span style={{fontSize:11.5, color:"var(--text-4)"}}>{hint}</span>}
+    </div>
+  );
+
+  const ToggleRow = ({ label, value, onChange, hint }) => (
+    <div style={{
+      display:"flex", alignItems:"center", justifyContent:"space-between",
+      padding:"12px 0", borderBottom:"1px solid var(--border)",
+    }}>
+      <div>
+        <div style={{fontSize:13.5, fontWeight:500, color:"var(--text)"}}>{label}</div>
+        {hint && <div style={{fontSize:12, color:"var(--text-3)", marginTop:2}}>{hint}</div>}
+      </div>
+      <SwitchToggle value={value} onChange={onChange} />
+    </div>
+  );
+
+  return (
+    <div className="fade-in">
+      <div className="section-header">
+        <div className="section-title">{t.settings_title}</div>
+        <button
+          className={saved ? "btn-navy" : "btn-primary"}
+          style={{width:"auto", padding:"8px 20px"}}
+          onClick={doSave}>
+          {saved ? t.set_saved : t.set_save}
+        </button>
+      </div>
+
+      <div style={{display:"grid", gridTemplateColumns:"200px 1fr", gap:20, alignItems:"start"}}>
+        {/* Left nav */}
+        <div className="card" style={{padding:"8px 0"}}>
+          {settingsTabs.map(tab => (
+            <button key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                display:"flex", alignItems:"center", gap:10,
+                width:"100%", padding:"10px 16px", border:"none",
+                background: activeTab===tab.id ? "rgba(37,99,235,0.08)" : "none",
+                color: activeTab===tab.id ? "var(--accent)" : "var(--text-2)",
+                fontFamily:"inherit", fontSize:13.5, fontWeight: activeTab===tab.id ? 600 : 500,
+                cursor:"pointer", textAlign:"left", borderRadius:0,
+                borderLeft: activeTab===tab.id ? "3px solid var(--accent)" : "3px solid transparent",
+                transition:"all 0.15s",
+              }}>
+              {tab.icon
+                ? <Icon d={tab.icon} size={15} stroke="currentColor" />
+                : <svg width={15} height={15} viewBox="0 0 28 28" fill="none"><rect x="2" y="2" width="24" height="24" rx="6" fill="currentColor" opacity="0.15"/><path d="M8 19.4V8.6L20 19.4V8.6" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              }
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Content */}
+        <div className="card" style={{padding:"24px 28px"}}>
+
+          {/* Profile */}
+          {activeTab === "profile" && (
+            <div className="fade-in">
+              <div style={{display:"flex", alignItems:"center", gap:20, marginBottom:28, paddingBottom:20, borderBottom:"1px solid var(--border)"}}>
+                <div style={{
+                  width:72, height:72, borderRadius:"50%",
+                  background:"var(--accent)", display:"flex", alignItems:"center", justifyContent:"center",
+                  fontSize:26, fontWeight:700, color:"#fff", flexShrink:0,
+                }}>D</div>
+                <div>
+                  <div style={{fontSize:17, fontWeight:700, color:"var(--text)"}}>{profile.name}</div>
+                  <div style={{fontSize:13, color:"var(--text-3)", marginTop:3}}>{profile.title} · {profile.dept}</div>
+                  <button className="btn-secondary" style={{marginTop:10, fontSize:12, padding:"5px 12px"}}>
+                    {lang==="tr"?"Fotoğraf Değiştir":"Change Photo"}
+                  </button>
+                </div>
+              </div>
+
+              <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:0}}>
+                <div style={{paddingRight:16}}>
+                  <FieldRow label={t.set_name}>
+                    <input className="field-input" value={profile.name} onChange={e=>setProfile({...profile,name:e.target.value})} />
+                  </FieldRow>
+                  <FieldRow label={t.set_title_field}>
+                    <input className="field-input" value={profile.title} onChange={e=>setProfile({...profile,title:e.target.value})} />
+                  </FieldRow>
+                  <FieldRow label={t.set_dept}>
+                    <input className="field-input" value={profile.dept} onChange={e=>setProfile({...profile,dept:e.target.value})} />
+                  </FieldRow>
+                </div>
+                <div style={{paddingLeft:16, borderLeft:"1px solid var(--border)"}}>
+                  <FieldRow label={t.set_email}>
+                    <input className="field-input" type="email" value={profile.email} readOnly />
+                  </FieldRow>
+                  <FieldRow label={t.set_hospital}>
+                    <input className="field-input" value={profile.hospital} onChange={e=>setProfile({...profile,hospital:e.target.value})} />
+                  </FieldRow>
+                  <FieldRow label={t.set_lang_pref}>
+                    <select className="field-input" value={lang} onChange={()=>{}}>
+                      <option value="tr">Türkçe</option>
+                      <option value="en">English</option>
+                    </select>
+                  </FieldRow>
+                  <button className="btn-secondary" onClick={onLogout} style={{marginTop:4}}>
+                    {t.logout}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* System */}
+          {activeTab === "system" && (
+            <div className="fade-in">
+              <FieldRow label={t.set_hospital}>
+                <input className="field-input" value={profile.hospital} onChange={e=>setProfile({...profile,hospital:e.target.value})} />
+              </FieldRow>
+              <FieldRow label={t.set_session} hint={lang==="tr"?"İnaktivite sonrası otomatik çıkış":"Auto logout after inactivity"}>
+                <div style={{display:"flex", alignItems:"center", gap:14}}>
+                  <input type="range" min={5} max={120} step={5}
+                    value={security.session}
+                    onChange={e=>setSecurity({...security,session:+e.target.value})}
+                    style={{flex:1, accentColor:"var(--accent)"}} />
+                  <span style={{fontFamily:"'DM Mono',monospace", fontSize:14, fontWeight:700, color:"var(--accent)", minWidth:52, textAlign:"center",
+                    background:"rgba(37,99,235,0.07)", padding:"4px 10px", borderRadius:7}}>
+                    {security.session} dk
+                  </span>
+                </div>
+              </FieldRow>
+            </div>
+          )}
+
+          {/* License */}
+          {activeTab === "license" && (
+            <div className="fade-in">
+              <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18}}>
+                <div>
+                  <div style={{fontSize:14, fontWeight:700, color:"var(--text)"}}>{t.license}</div>
+                  <div style={{fontSize:12.5, color:"var(--text-3)", marginTop:3}}>
+                    {lang==="tr"?"Demo MVP lisansı yerel cihazda tutulur. Hasta verisi dışarı çıkmaz.":"Demo MVP license is stored on the local workstation. Patient data never leaves the device."}
+                  </div>
+                </div>
+                <span className={`status-badge ${settings?.license?.status || "demo"}`}>
+                  {(settings?.license?.status || "demo").toUpperCase()}
+                </span>
+              </div>
+              <div className="license-card-grid">
+                <div className="license-metric"><span>{t.license_type}</span><b>{settings?.license?.type || "demo"}</b></div>
+                <div className="license-metric"><span>{t.license_expires}</span><b>{settings?.license?.expires_at ? new Date(settings.license.expires_at).toLocaleDateString(lang==="tr"?"tr-TR":"en-US") : "—"}</b></div>
+                <div className="license-metric"><span>{t.license_key}</span><b>{settings?.license?.key_masked || "NA-****-****"}</b></div>
+                <div className="license-metric"><span>{t.demo_remaining}</span><b>{settings?.license?.analyses_limit != null ? Math.max(0, settings.license.analyses_limit - (settings.license.analyses_used || 0)) : "—"}</b></div>
+              </div>
+              <div style={{display:"flex", gap:10, flexWrap:"wrap"}}>
+                <button className="btn-navy" onClick={()=>{ window.location.href = "mailto:contact@neuroanalyse.com"; }}>{t.renew_license}</button>
+                <button className="btn-secondary" onClick={()=>{ window.location.href = "mailto:contact@neuroanalyse.com"; }}>{t.support}</button>
+              </div>
+            </div>
+          )}
+
+          {/* Model & AI */}
+          {activeTab === "model" && (
+            <div className="fade-in">
+              <div style={{marginBottom:24}}>
+                <div style={{fontSize:14, fontWeight:600, color:"var(--text)", marginBottom:16}}>
+                  {lang==="tr"?"Mevcut Model":"Current Model"}
+                </div>
+                <div style={{
+                  display:"flex", alignItems:"center", gap:16, padding:"16px 20px",
+                  background:"rgba(37,99,235,0.05)", border:"1px solid rgba(37,99,235,0.15)",
+                  borderRadius:10, marginBottom:20,
+                }}>
+                  <div style={{width:44, height:44, background:"var(--accent)", borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                    <LogoMark size={23} />
+                  </div>
+                  <div style={{flex:1}}>
+                    <div style={{fontWeight:700, color:"var(--text)", fontSize:14}}>{modelCfg.model}</div>
+                  </div>
+                  <span style={{fontSize:11, fontWeight:700, background:"#f0fdf4", color:"#15803d", border:"1px solid #86efac", padding:"3px 10px", borderRadius:5}}>
+                    {lang==="tr"?"Aktif":"Active"}
+                  </span>
+                </div>
+
+                <FieldRow
+                  label={t.set_threshold}
+                  hint={lang==="tr"
+                    ? `Mevcut eşik: ${modelCfg.threshold} CL. Bu değerin üzeri pozitif kabul edilir.`
+                    : `Current threshold: ${modelCfg.threshold} CL. Values above are considered positive.`}>
+                  <div style={{display:"flex", alignItems:"center", gap:14}}>
+                    <input type="range" min={10} max={50} step={1}
+                      value={modelCfg.threshold}
+                      onChange={e=>setModelCfg({...modelCfg,threshold:+e.target.value})}
+                      style={{flex:1, accentColor:"var(--accent)"}} />
+                    <span style={{fontFamily:"'DM Mono',monospace", fontSize:14, fontWeight:700, color:"var(--accent)", minWidth:52, textAlign:"center",
+                      background:"rgba(37,99,235,0.07)", padding:"4px 10px", borderRadius:7}}>
+                      {modelCfg.threshold} CL
+                    </span>
+                  </div>
+                </FieldRow>
+              </div>
+
+              <div style={{borderTop:"1px solid var(--border)", paddingTop:20}}>
+                <div style={{fontSize:13, fontWeight:600, color:"var(--text-2)", marginBottom:8}}>{lang==="tr"?"Görüntüleme Seçenekleri":"Display Options"}</div>
+                <ToggleRow
+                  label={t.set_confidence_display}
+                  hint={lang==="tr"?"Sonuç ekranında güven aralığını göster":"Show confidence interval on result screen"}
+                  value={modelCfg.showConfidence}
+                  onChange={v=>setModelCfg({...modelCfg,showConfidence:v})} />
+                <ToggleRow
+                  label={t.set_auto_report}
+                  hint={lang==="tr"?"Analiz tamamlandığında otomatik PDF oluştur":"Auto-generate PDF when analysis completes"}
+                  value={modelCfg.autoReport}
+                  onChange={v=>setModelCfg({...modelCfg,autoReport:v})} />
+              </div>
+            </div>
+          )}
+
+          {/* Integrations */}
+          {activeTab === "integration" && (
+            <div className="fade-in">
+              <div style={{fontSize:13, color:"var(--text-3)", marginBottom:20, padding:"10px 14px", background:"var(--bg)", borderRadius:8, border:"1px solid var(--border)"}}>
+                {lang==="tr"
+                  ? "Bu alanlar backend tarafından okunur. Yanlış yapılandırma görüntü yüklemeyi etkileyebilir."
+                  : "These fields are read by the backend. Incorrect configuration may affect image ingestion."}
+              </div>
+              <FieldRow label={t.set_dicom} hint="dicom://host:port">
+                <input className="field-input" value={integrations.dicom} onChange={e=>setIntegrations({...integrations,dicom:e.target.value})} />
+              </FieldRow>
+              <FieldRow label={t.set_ris} hint="https://...">
+                <input className="field-input" value={integrations.ris} onChange={e=>setIntegrations({...integrations,ris:e.target.value})} />
+              </FieldRow>
+              <FieldRow label={t.set_pacs} hint={lang==="tr"?"Opsiyonel":"Optional"}>
+                <input className="field-input" value={integrations.pacs} placeholder={lang==="tr"?"Henüz yapılandırılmadı":"Not configured"} onChange={e=>setIntegrations({...integrations,pacs:e.target.value})} />
+              </FieldRow>
+              <FieldRow label={t.set_api_key} hint={lang==="tr"?"Backend API kimlik doğrulaması için":"For backend API authentication"}>
+                <div style={{display:"flex", gap:8}}>
+                  <input className="field-input" value={integrations.apiKey} readOnly style={{fontFamily:"'DM Mono',monospace", fontSize:12.5, flex:1}} />
+                  <button className="btn-secondary" style={{flexShrink:0, fontSize:12}}
+                    onClick={()=>setIntegrations({...integrations, apiKey:"sk-na-" + Math.random().toString(36).slice(2,10) + "****"})}>
+                    {lang==="tr"?"Yenile":"Regenerate"}
+                  </button>
+                </div>
+              </FieldRow>
+            </div>
+          )}
+
+          {/* Security */}
+          {activeTab === "security" && (
+            <div className="fade-in">
+              <div style={{fontSize:13, fontWeight:600, color:"var(--text-2)", marginBottom:4}}>
+                {lang==="tr"?"Kimlik Doğrulama":"Authentication"}
+              </div>
+              <ToggleRow
+                label={t.set_2fa}
+                hint={lang==="tr"?"Her girişte SMS/uygulama ile doğrulama":"Verify with SMS/app on each login"}
+                value={security.twofa}
+                onChange={v=>setSecurity({...security,twofa:v})} />
+              <ToggleRow
+                label={t.set_audit}
+                hint={lang==="tr"?"Tüm kullanıcı işlemlerini günlüğe kaydet":"Log all user actions for compliance"}
+                value={security.audit}
+                onChange={v=>setSecurity({...security,audit:v})} />
+
+              <FieldRow label={t.set_session} hint={lang==="tr"?"İnaktivite sonrası otomatik çıkış":"Auto logout after inactivity"}>
+                <div style={{display:"flex", alignItems:"center", gap:14}}>
+                  <input type="range" min={5} max={120} step={5}
+                    value={security.session}
+                    onChange={e=>setSecurity({...security,session:+e.target.value})}
+                    style={{flex:1, accentColor:"var(--accent)"}} />
+                  <span style={{fontFamily:"'DM Mono',monospace", fontSize:14, fontWeight:700, color:"var(--accent)", minWidth:52, textAlign:"center",
+                    background:"rgba(37,99,235,0.07)", padding:"4px 10px", borderRadius:7}}>
+                    {security.session} dk
+                  </span>
+                </div>
+              </FieldRow>
+
+              <div style={{fontSize:13, fontWeight:600, color:"var(--text-2)", margin:"20px 0 4px"}}>
+                {lang==="tr"?"Bildirimler":"Notifications"}
+              </div>
+              <ToggleRow
+                label={t.set_notif_email}
+                hint={lang==="tr"?"Analiz tamamlandığında e-posta gönder":"Send email when analysis completes"}
+                value={security.emailNotif}
+                onChange={v=>setSecurity({...security,emailNotif:v})} />
+              <ToggleRow
+                label={t.set_notif_high}
+                hint={lang==="tr"?"Kritik risk düzeyinde anlık bildirim":"Instant alert for high risk results"}
+                value={security.highAlert}
+                onChange={v=>setSecurity({...security,highAlert:v})} />
+
+              {currentUser?.role === "admin" && (
+                <div style={{borderTop:"1px solid var(--border)", marginTop:22, paddingTop:20}}>
+                  <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12}}>
+                    <div style={{fontSize:13, fontWeight:700, color:"var(--text-2)"}}>
+                      {lang==="tr"?"Kullanıcı Yönetimi":"User Management"}
+                    </div>
+                    <span style={{fontSize:12, color:"var(--text-3)"}}>{users.length} {lang==="tr"?"kullanıcı":"users"}</span>
+                  </div>
+                  <table className="patients-table">
+                    <thead>
+                      <tr>
+                        <th>{lang==="tr"?"Kullanıcı":"User"}</th>
+                        <th>{lang==="tr"?"Rol":"Role"}</th>
+                        <th>{lang==="tr"?"Durum":"Status"}</th>
+                        <th>{lang==="tr"?"İşlem":"Action"}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map(u => (
+                        <tr key={u.id}>
+                          <td>
+                            <div className="pt-name">{u.full_name || u.username}</div>
+                            <div className="pt-id">{u.username}</div>
+                          </td>
+                          <td style={{textTransform:"capitalize"}}>{u.role}</td>
+                          <td>
+                            <span style={{
+                              fontSize:11.5, fontWeight:700, padding:"2px 8px", borderRadius:5,
+                              color: u.is_locked ? "#92400e" : "#15803d",
+                              background: u.is_locked ? "#fffbeb" : "#f0fdf4",
+                              border: `1px solid ${u.is_locked ? "#fcd34d" : "#86efac"}`,
+                            }}>
+                              {u.is_locked ? (lang==="tr"?"Kilitli":"Locked") : (lang==="tr"?"Aktif":"Active")}
+                            </span>
+                          </td>
+                          <td>
+                            <button className="btn-secondary" style={{padding:"5px 10px", fontSize:11.5}}
+                              disabled={!u.is_locked}
+                              onClick={() => unlockUser(u.id)}>
+                              {lang==="tr"?"Kilidi Aç":"Unlock"}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", margin:"24px 0 12px"}}>
+                    <div style={{fontSize:13, fontWeight:700, color:"var(--text-2)"}}>
+                      {lang==="tr"?"Denetim Logu":"Audit Log"}
+                    </div>
+                    <button className="btn-secondary" style={{padding:"6px 12px", fontSize:12}}
+                      onClick={() => { window.location.href = "/api/audit/export"; }}>
+                      {lang==="tr"?"CSV Dışa Aktar":"Export CSV"}
+                    </button>
+                  </div>
+                  <table className="patients-table">
+                    <thead>
+                      <tr>
+                        <th>{lang==="tr"?"Zaman":"Time"}</th>
+                        <th>{lang==="tr"?"Olay":"Event"}</th>
+                        <th>{lang==="tr"?"Kullanıcı":"User"}</th>
+                        <th>{lang==="tr"?"Detay":"Details"}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {auditLogs.map(l => (
+                        <tr key={l.id}>
+                          <td style={{fontFamily:"'DM Mono',monospace", fontSize:11.5}}>
+                            {new Date(l.timestamp).toLocaleString(lang==="tr"?"tr-TR":"en-US")}
+                          </td>
+                          <td style={{fontWeight:600, color:"var(--text)"}}>{l.action}</td>
+                          <td style={{color:"var(--text-3)"}}>{l.username || "—"}</td>
+                          <td style={{color:"var(--text-3)", fontSize:12}}>{l.details || "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── App ───────────────────────────────────────────────────────────────
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "lang": "tr",
+  "accentColor": "#2563eb",
+  "compactSidebar": false
+}/*EDITMODE-END*/;
+
+function App() {
+  const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const [lang, setLang] = useState(TWEAK_DEFAULTS.lang || "tr");
+  const [page, setPage] = useState("dashboard");
+  const [result, setResult] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [noticeAccepted, setNoticeAccepted] = useState(false);
+  const [license, setLicense] = useState(null);
+  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [patientCount, setPatientCount] = useState(null);
+
+  const t = T[lang];
+
+  // Browser history navigation
+  const navigateTo = React.useCallback((newPage, state = {}) => {
+    window.history.pushState({ page: newPage, ...state }, "", `#${newPage}`);
+    setPage(newPage);
+  }, []);
+
+  useEffect(() => {
+    const onPop = (e) => {
+      const pg = e.state?.page || "dashboard";
+      setPage(pg);
+      if (pg !== "patientDetail") setSelectedPatient(null);
+      if (pg !== "results") setResult(null);
+    };
+    window.addEventListener("popstate", onPop);
+    window.history.replaceState({ page: "dashboard" }, "", "#dashboard");
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  useEffect(() => {
+    apiFetch("/api/auth/me")
+      .then(user => {
+        setCurrentUser(user);
+        setLang(user.language || TWEAK_DEFAULTS.lang || "tr");
+      })
+      .catch(() => setCurrentUser(null))
+      .finally(() => setAuthChecked(true));
+  }, []);
+
+  useEffect(() => {
+    if (!currentUser?.role || currentUser.role !== "admin") return;
+    apiFetch("/api/license").then(setLicense).catch(() => {});
+  }, [currentUser?.id]);
+
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    apiFetch("/api/patients")
+      .then(items => setPatientCount(Array.isArray(items) ? items.length : null))
+      .catch(() => setPatientCount(null));
+  }, [currentUser?.id]);
+
+  const handleLangChange = (l) => {
+    setLang(l);
+    setTweak("lang", l);
+  };
+
+  const handleLogout = async () => {
+    try { await apiFetch("/api/auth/logout", { method: "POST" }); } catch (_) {}
+    setCurrentUser(null);
+    setNoticeAccepted(false);
+    setLicense(null);
+    setPage("dashboard");
+  };
+
+  const handleResult = (r) => {
+    setResult(r);
+    setSelectedPatient(null);
+    navigateTo("results");
+  };
+
+  const handleNewAnalysis = () => {
+    setResult(null);
+    setSelectedPatient(null);
+    navigateTo("new");
+  };
+
+  const openAnalysisRecord = async (analysisId) => {
+    try {
+      const full = await apiFetch(`/api/analyses/${analysisId}`);
+      setResult(analysisToResult(full, lang));
+      setSelectedPatient(null);
+      navigateTo("results");
+    } catch (_) {}
+  };
+
+  const openPatientAnalysis = async (patientId) => {
+    try {
+      const list = await apiFetch(`/api/analyses?patient_id=${encodeURIComponent(patientId)}&limit=1`);
+      const item = list.items?.[0];
+      if (!item) return;
+      await openAnalysisRecord(item.id);
+    } catch (_) {}
+  };
+
+  const openPatientDetail = async (patientId) => {
+    try {
+      const patient = await apiFetch(`/api/patients/${encodeURIComponent(patientId)}`);
+      setSelectedPatient(patient);
+      setResult(null);
+      navigateTo("patientDetail");
+    } catch (_) {}
+  };
+
+  const navItems = [
+    { id:"dashboard", label: t.nav_dashboard, icon: ICONS.grid },
+    { id:"new",       label: t.nav_new,       icon: ICONS.plus },
+    { id:"patients",  label: t.nav_patients,  icon: ICONS.users, badge: patientCount },
+    { id:"reports",   label: t.nav_reports,   icon: ICONS.file },
+    { id:"settings",  label: t.nav_settings,  icon: ICONS.settings },
+  ];
+
+  const pageTitle = {
+    dashboard: t.nav_dashboard,
+    new: t.nav_new,
+    patients: t.nav_patients,
+    reports: t.nav_reports,
+    settings: t.nav_settings,
+    results: t.modal_title,
+    patientDetail: t.patients_title,
+  }[page] || "";
+
+  const renderContent = () => {
+    if (page === "dashboard") return <DashboardView lang={lang} onNavigate={navigateTo} onOpenAnalysis={openPatientAnalysis} />;
+    if (page === "new") return <NewAnalysisView lang={lang} onResult={handleResult} />;
+    if (page === "patients") return <PatientsView lang={lang} onOpenPatient={openPatientDetail} onPatientDeleted={()=>navigateTo("patients")} />;
+    if (page === "patientDetail" && selectedPatient) return <PatientDetailView lang={lang} patient={selectedPatient} onOpenAnalysis={openAnalysisRecord} onNewAnalysis={handleNewAnalysis} onBack={()=>navigateTo("patients")} />;
+    if (page === "results" && result) return <ResultsView result={result} lang={lang} onNew={handleNewAnalysis} />;
+    if (page === "reports") return <ReportsView lang={lang} onOpenAnalysis={openAnalysisRecord} />;
+    if (page === "settings") return <SettingsView lang={lang} currentUser={currentUser} onLogout={handleLogout} onLicenseChange={setLicense} />;
+    return null;
+  };
+
+  if (!authChecked) {
+    return (
+      <div className="loading-overlay">
+        <div className="loading-card">
+          <div className="spinner-ring"></div>
+          <div className="loading-title">{lang==="tr"?"Oturum kontrol ediliyor...":"Checking session..."}</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentUser) {
+    return <LoginView lang={lang} onLogin={(user)=>{ setCurrentUser(user); setNoticeAccepted(false); }} />;
+  }
+
+  return (
+    <React.Fragment>
+      {/* Sidebar */}
+      <aside className="sidebar">
+        <div className="sidebar-brand">
+          <div className="brand-logo">
+            <LogoMark size={24} />
+          </div>
+          <div className="brand-text">
+            <div className="brand-name">{t.appName}</div>
+            <div className="brand-sub">{t.appSub}</div>
+          </div>
+        </div>
+
+        <nav className="sidebar-nav">
+          <div className="nav-section-label">{lang==="tr"?"Ana Menü":"Menu"}</div>
+          {navItems.map(item => (
+            <button
+              key={item.id}
+              className={`nav-item${page===item.id||(page==="results"&&item.id==="new")||(page==="patientDetail"&&item.id==="patients")?" active":""}`}
+              onClick={()=>{ navigateTo(item.id); }}
+            >
+              <Icon d={item.icon} size={16} stroke="currentColor" />
+              {item.label}
+              {item.badge && <span className="nav-badge">{item.badge}</span>}
+            </button>
+          ))}
+        </nav>
+
+        <div className="sidebar-bottom">
+          <div className="sidebar-user">
+            <div className="user-avatar">{(currentUser.full_name || currentUser.username || "U").slice(0,1).toUpperCase()}</div>
+            <div>
+              <div className="user-name">{currentUser.full_name || currentUser.username}</div>
+              <div className="user-role">{currentUser.role === "admin" ? "Admin" : (lang==="tr"?"Klinisyen":"Clinician")}</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main area */}
+      <div className="main-area">
+        <div className="topbar">
+          <div className="topbar-title">{pageTitle}</div>
+          <div className="topbar-right">
+            <div className="lang-toggle">
+              <button className={`lang-btn${lang==="tr"?" active":""}`} onClick={()=>handleLangChange("tr")}>TR</button>
+              <button className={`lang-btn${lang==="en"?" active":""}`} onClick={()=>handleLangChange("en")}>EN</button>
+            </div>
+            {license && <div className={`status-badge ${license.status}`}>DEMO</div>}
+            <button className="topbar-icon-btn" title="Notifications">
+              <Icon d={ICONS.bell} size={15} />
+            </button>
+          </div>
+        </div>
+
+        <div className="content-scroll">
+          {renderContent()}
+        </div>
+
+      </div>
+
+      {/* Tweaks panel */}
+      <TweaksPanel>
+        <TweakSection label={lang==="tr"?"Dil / Language":"Language"} />
+        <TweakRadio
+          label={lang==="tr"?"Arayüz Dili":"Interface Language"}
+          value={lang}
+          options={["tr","en"]}
+          onChange={(v) => handleLangChange(v)}
+        />
+        <TweakSection label={lang==="tr"?"Renk / Color":"Color"} />
+        <TweakColor
+          label={lang==="tr"?"Vurgu Rengi":"Accent Color"}
+          value={tweaks.accentColor || "#2563eb"}
+          onChange={(v) => {
+            setTweak("accentColor", v);
+            document.documentElement.style.setProperty("--accent", v);
+          }}
+        />
+      </TweaksPanel>
+    </React.Fragment>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+</script>
+
+</body>
+</html>
