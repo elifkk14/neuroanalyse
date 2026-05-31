@@ -1,32 +1,32 @@
 # NeuroAnalyse Demo
 
-NeuroAnalyse, 3D T1-weighted MRI görüntülerinden amiloid yükünü Centiloid ölçeğinde tahmin eden web tabanlı bir demo uygulamasıdır.
+NeuroAnalyse is a web-based demo application that estimates amyloid burden on the Centiloid scale from 3D T1-weighted MRI scans.
 
-Bu repo yalnızca demo/runtime paketi olarak hazırlanmıştır. Eğitim kodları, eğitim notebookları, eğitim CSV dosyaları, preprocessing deneyleri ve model geliştirme klasörleri bu pakete dahil değildir.
+This repository is prepared as a runtime-only demo package. It does not include training scripts, training notebooks, training CSV files, preprocessing experiments, or model development folders.
 
-## İçerik
+## What's Included
 
 - FastAPI backend
-- Tek dosyalık React frontend
-- Demo hasta ve MRI örnekleri
-- PDF rapor üretimi
+- Single-file React frontend
+- Demo patients and sample MRI scans
+- PDF report generation
 - Late Fusion inference runtime
-- En iyi seçilmiş full-brain ve masked-region model checkpointleri
+- Selected full-brain and masked-region model checkpoints
 
 ## Model
 
-Arayüz `LateFusion-v1.0` modelini kullanır.
+The interface uses `LateFusion-v1.0`.
 
-Model iki ayrı 3D ResNet tahminini birleştirir:
+The model combines two separate 3D ResNet predictions:
 
 - `model_runtime/full_model.ckpt`
 - `model_runtime/masked_model.ckpt`
 
-Son Centiloid tahmini full-brain ve masked-region çıktılarının 50/50 ortalaması ile hesaplanır.
+The final Centiloid estimate is computed as a 50/50 average of the full-brain and masked-region model outputs.
 
-## Kurulum
+## Setup
 
-Python 3.11 önerilir.
+Python 3.11 is recommended.
 
 ```bash
 git clone https://github.com/elifkk14/neuroanalyse.git
@@ -37,31 +37,31 @@ cd ../..
 ./start.sh
 ```
 
-Uygulama açıldıktan sonra tarayıcıda şu adresi ziyaret edin:
+After the server starts, open:
 
 ```text
 http://127.0.0.1:8001
 ```
 
-## Demo Giriş Bilgileri
+## Demo Login
 
-Klinisyen hesabı:
+Clinician account:
 
 ```text
 Username: ayse.yilmaz
 Password: Test1234
 ```
 
-Admin hesabı:
+Admin account:
 
 ```text
 Username: admin@neuroanalyse.local
 Password: Admin1234
 ```
 
-## Notlar
+## Notes
 
-- İlk açılışta demo veritabanı ve örnek raporlar otomatik oluşturulur.
-- Yüklenen MRI dosyaları analiz sonrası saklanmaz.
-- Bu demo araştırma ve ürün gösterimi amacıyla hazırlanmıştır; klinik tanı aracı olarak kullanılmamalıdır.
+- The demo database and sample reports are created automatically on first launch.
+- Uploaded MRI files are not retained after analysis.
+- This demo is intended for research and product demonstration purposes only. It is not approved for clinical diagnosis.
 
