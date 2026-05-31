@@ -25,7 +25,7 @@ from datetime import datetime
 from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-_DEMOS_DIR    = _PROJECT_ROOT / "mrı_demos_nii"
+_DEMOS_DIR    = _PROJECT_ROOT / "mri_demos_nii"
 
 # ── Gerçek inference sonuçları (LateFusionPredictor çıktısı) ──────────────────
 _DEMO_DATA = [

@@ -10,10 +10,10 @@ services:
       - ./frontend:/app/frontend:ro
       # Data directory (database + reports) — persisted
       - ./data:/app/data
-      # Project root mounts (model checkpoints, mask, Late Fusion)
+      # Project root mounts (model checkpoints, mask, demo scans)
       - ../DementiaMask_AAL3.nii:/app/DementiaMask_AAL3.nii:ro
-      - ../Late_Fusion_SON:/app/Late_Fusion_SON:ro
-      - ../mrı_demos_nii:/app/mrı_demos_nii:ro
+      - ../model_runtime:/app/model_runtime:ro
+      - ../mri_demos_nii:/app/mri_demos_nii:ro
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped

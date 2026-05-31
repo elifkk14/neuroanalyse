@@ -8,7 +8,7 @@ Stages (matching training notebooks exactly):
   3. Resize to (91,109,91)   (scipy.ndimage.zoom  — mirrors standardize_batch1.ipynb)
   4. Float32 cast            (same dtype as training data)
   5. Apply DementiaMask      (data * mask  — mirrors masked_mrı.ipynb)
-  6. Late Fusion inference   (LateFusionPredictor from Late_Fusion_SON)
+  6. Late Fusion inference   (LateFusionPredictor from model_runtime)
   7. Slice generation        (axial / coronal / sagittal base64 PNGs)
 
 The Late Fusion predictor expects two NIfTI files:
@@ -39,7 +39,7 @@ import numpy as np
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 _MASK_PATH = _PROJECT_ROOT / "DementiaMask_AAL3.nii"
-_LATE_FUSION_DIR = _PROJECT_ROOT / "Late_Fusion_SON"
+_MODEL_RUNTIME_DIR = _PROJECT_ROOT / "model_runtime"
 
 _TARGET_SHAPE = (91, 109, 91)   # must match training standardize step
 
@@ -59,9 +59,9 @@ _predictor = None
 def _get_predictor():
     global _predictor
     if _predictor is None:
-        sys.path.insert(0, str(_LATE_FUSION_DIR))
-        import late_fusion_predictor as _lf
-        _predictor = _lf.LateFusionPredictor()
+        sys.path.insert(0, str(_MODEL_RUNTIME_DIR))
+        from late_fusion_runtime import LateFusionPredictor
+        _predictor = LateFusionPredictor()
     return _predictor
 
 

@@ -1,37 +1,14 @@
-# macOS
 .DS_Store
 **/.DS_Store
-
-# Python
 __pycache__/
 **/__pycache__/
 *.pyc
 *.pyo
-*.pyd
-
-# Virtual environment
 .venv/
-**/\.venv/
 venv/
 env/
-
-# Database — hasta verisi, her başlatmada sıfırdan oluşur
 interface/data/neuroanalyse.db
 interface/data/neuroanalyse.db-shm
 interface/data/neuroanalyse.db-wal
-
-# Oluşturulan PDF raporları — hasta verisi içerir
 interface/data/reports/
 
-# Yüklenen MRI dosyaları (geçici)
-interface/data/uploads/
-
-# Claude ayarları
-.claude/
-
-# Eğitim logları
-logs/
-
-# IDE
-.vscode/
-.idea/
